@@ -1,0 +1,17 @@
+[project]
+name = "nocodb-client"
+version = "0.1.0"
+description = "A simple NocoDB API v2 wrapper"
+authors = [
+    {name = "Dmitrii Okishev",email = "d.okishev@hzdr.de"}
+]
+readme = "README.md"
+requires-python = ">=3.12"
+dynamic = ["dependencies"]
+
+[tool.setuptools.dynamic]
+dependencies = {file = ["requirements.txt"]}
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"

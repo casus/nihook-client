@@ -24,7 +24,7 @@ special_columns = [
     "dt": "varchar",
     "dtx": "specificType",
     "colOptions": {
-        "options":
+        "options": 
         [
             {"title": "current"},
             {"title": "deleted"},
@@ -154,6 +154,7 @@ def create_new_table( base, name, columns ):
         # print(json.dumps(details,indent=4))
         # for c in details['columns']:
         #     print(f"    column '{c['title']}' of type {c['uidt']} / {c['dt']}")
+
 
 def create_new_table_with_params( base, name, columns, nocodb_host, nocodb_token, nocodb_ssl_cert ):
 

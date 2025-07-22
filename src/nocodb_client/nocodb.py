@@ -324,7 +324,7 @@ class Table:
 
         # print( json.dumps(data, indent=4 ) )
 
-        res = self.session.post(url, json=data).json()
+        res = self.session.post(url, json=data)
 
         # print( json.dumps(res, indent=4 ) )
 

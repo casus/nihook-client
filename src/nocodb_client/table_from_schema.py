@@ -9,7 +9,8 @@ import nocodb
 import prepare_json
 
 
-special_columns = [{
+special_columns = [
+    {
     "column_name": "URL",
     "title": "URL",
     "uidt": "URL",
@@ -20,11 +21,18 @@ special_columns = [{
     "column_name": "status",
     "title": "status",
     "uidt": "SingleSelect",
-    "dt": "character varying",
+    "dt": "varchar",
     "dtx": "specificType",
-    "dtxp": "'current','deleted','replaced'",
+    "colOptions": {
+        "options": 
+        [
+            {"title": "current"},
+            {"title": "deleted"},
+            {"title": "replaced"}
+        ]
+    },
     "dtxs": "",
-    "cdf": "'current'"
+    "cdf": "current"
 }, {
     "column_name": "branch",
     "title": "branch",
@@ -146,6 +154,7 @@ def create_new_table( base, name, columns ):
         # print(json.dumps(details,indent=4))
         # for c in details['columns']:
         #     print(f"    column '{c['title']}' of type {c['uidt']} / {c['dt']}")
+
 
 def create_new_table_with_params( base, name, columns, nocodb_host, nocodb_token, nocodb_ssl_cert ):
 

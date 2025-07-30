@@ -5,6 +5,8 @@ from enum import Enum
 import requests
 import json
 
+import urllib
+
 """
 Class for access to a NOCODB instance
 """
@@ -462,4 +464,36 @@ class Table:
 
         res = self.session.post(url, json=data)
 
+        return res
+    
+    def link_records(self, linkFieldId, recordId, linkedRecordPKs: str| list) -> requests.Response:
+        """
+        [DATA] Link Records
+        This API endpoint allows linking records within a specified table.
+        POST https://app.nocodb.com/api/v1/db/data/{orgs}/{baseName}/{tableName}/{rowId}/{relationType}/{columnName}/{refRowId}
+        """
+        #  http://localhost:5555/api/v1/db/data/noco/pj8w1l6dgxb1jli/mhb1cpgito42u2y/1/hm/ch6euyw5icy01xq/https%3A%2F%2Fcodebase.helmholtz.cloud%2Fokishe32%2Fproject-for-test%2F-%2Ftree%2Fmaster%2F10__%2F1001
+        table_metadata = self.read_table()
+        base_id = table_metadata['baseId']
+        column_link_type = table_metadata['columnsById'][linkFieldId]['colOptions']['type']
+        # Encode the recordId to ensure it is URL-safe
+        encoded_record_id = urllib.parse.quote(recordId, safe='')
+        if isinstance(linkedRecordPKs, list):
+            for i in range(len(linkedRecordPKs)):
+                linkedRecordPKs[i] = urllib.parse.quote(str(linkedRecordPKs[i]), safe='')
+        else:
+            linkedRecordPKs = urllib.parse.quote(str(linkedRecordPKs), safe='')
+        
+        
+        if isinstance(linkedRecordPKs, list):
+            for linkedRecordPK in linkedRecordPKs:
+                url = f"{self.host}/api/v1/db/data/noco/{base_id}/{self.tableid}/{encoded_record_id}/{column_link_type}/{linkFieldId}/{linkedRecordPK}"
+                res = self.session.post(url)
+                if res.status_code != 200:
+                    print(f"Failed to link record {linkedRecordPK} with {recordId}: {res.text}")
+        else:
+            url = f"{self.host}/api/v1/db/data/noco/{base_id}/{self.tableid}/{encoded_record_id}/{column_link_type}/{linkFieldId}/{linkedRecordPKs}"
+            res = self.session.post(url)
+            if res.status_code != 200:
+                print(f"Failed to link record {linkedRecordPKs} with {recordId}: {res.text}")
         return res

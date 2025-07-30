@@ -443,7 +443,7 @@ class Table:
 
         return res
 
-    def create_column(self, column_name, column_type, column_options=None):
+    def create_column(self, column_name, column_type, extra_options=None):
         """
         [DATA] Create Table Column
         This API endpoint allows creating a new column within a specified table.
@@ -457,8 +457,8 @@ class Table:
             "uidt": column_type
         }
 
-        if column_options:
-            data["colOptions"] = column_options
+        if extra_options:
+            data.update(extra_options)
 
         res = self.session.post(url, json=data)
 

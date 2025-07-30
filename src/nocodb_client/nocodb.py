@@ -21,15 +21,14 @@ class Nocodb:
         self.session.headers.update({"accept": "application/json", "xc-token": self.auth_token})
         self.session.verify = self.verify
 
-    """ 
-    [META] List Bases
-    List all base meta data
-    https://meta-apis-v2.nocodb.com/#tag/Base/operation/base-list
-    GET http://localhost:8080/api/v2/meta/bases/
-    """
 
     def list_bases(self) -> dict:
-
+        """ 
+        [META] List Bases
+        List all base meta data
+        https://meta-apis-v2.nocodb.com/#tag/Base/operation/base-list
+        GET http://localhost:8080/api/v2/meta/bases/
+        """
         url = f"{self.host}/api/v2/meta/bases/"
 
         res = self.session.get(url, params={}).json()
@@ -43,14 +42,13 @@ class Nocodb:
 
         return ret
 
-    """
-    [META] Create Base
-    Create a new base
-    https://meta-apis-v2.nocodb.com/#tag/Base/operation/base-create
-    POST http://localhost:8080/api/v2/meta/bases/
-    """
-
     def create_base(self, title, color=None, description=None, base_type=None) -> dict:
+        """
+        [META] Create Base
+        Create a new base
+        https://meta-apis-v2.nocodb.com/#tag/Base/operation/base-create
+        POST http://localhost:8080/api/v2/meta/bases/
+        """
 
         url = f"{self.host}/api/v2/meta/bases/"
 
@@ -82,14 +80,14 @@ class Nocodb:
                 return Base(base_id, nocodb=self)
         return None
 
-    """
-    [META] Delete Base
-    Delete the given base
-    https://meta-apis-v2.nocodb.com/#tag/Base/operation/base-delete
-    DELETE http://localhost:8080/api/v2/meta/bases/{baseId}
-    """
 
     def delete_base(self, base_id) -> dict:
+        """
+        [META] Delete Base
+        Delete the given base
+        https://meta-apis-v2.nocodb.com/#tag/Base/operation/base-delete
+        DELETE http://localhost:8080/api/v2/meta/bases/{baseId}
+        """
         url = f'{self.host}/api/v2/meta/bases/{base_id}'
         headers = {"accept": "application/json", "xc-token": self.auth_token}
         return requests.delete(url, headers=headers).json()
@@ -144,14 +142,14 @@ class Base:
         print(json.dumps(self.info, indent=4))
         print(json.dumps(self.metadata, indent=4))
 
-    """
-    [META] Get Base info
-    Get info such as node version, arch, platform, is docker, rootdb and package version of a given base
-    https://meta-apis-v2.nocodb.com/#tag/Base/operation/base-meta-get
-    GET http://localhost:8080/api/v2/meta/bases/{baseId}/info
-    """
 
     def get_base_info(self) -> dict:
+        """
+        [META] Get Base info
+        Get info such as node version, arch, platform, is docker, rootdb and package version of a given base
+        https://meta-apis-v2.nocodb.com/#tag/Base/operation/base-meta-get
+        GET http://localhost:8080/api/v2/meta/bases/{baseId}/info
+        """
 
         url = f"{self.host}/api/v2/meta/bases/{self.base_id}/info"
 
@@ -161,14 +159,14 @@ class Base:
 
         return res
 
-    """
-    [META] Get Base
-    Get the info of a given base
-    https://meta-apis-v2.nocodb.com/#tag/Base/operation/base-read
-    GET http://localhost:8080/api/v2/meta/bases/{baseId}
-    """
 
     def get_base(self) -> dict:
+        """
+        [META] Get Base
+        Get the info of a given base
+        https://meta-apis-v2.nocodb.com/#tag/Base/operation/base-read
+        GET http://localhost:8080/api/v2/meta/bases/{baseId}
+        """
 
         url = f"{self.host}/api/v2/meta/bases/{self.base_id}"
 
@@ -178,14 +176,14 @@ class Base:
 
         return res
 
-    """
-    [META] List Tables
-    List all tables in a given base
-    https://meta-apis-v2.nocodb.com/#tag/DB-Table/operation/db-table-list
-    GET http://localhost:8080/api/v2/meta/bases/{baseId}/tables
-    """
 
     def list_tables(self) -> dict:
+        """
+        [META] List Tables
+        List all tables in a given base
+        https://meta-apis-v2.nocodb.com/#tag/DB-Table/operation/db-table-list
+        GET http://localhost:8080/api/v2/meta/bases/{baseId}/tables
+        """
 
         url = f"{self.host}/api/v2/meta/bases/{self.base_id}/tables"
 
@@ -200,15 +198,15 @@ class Base:
 
         return ret
 
-    """
-    [META] Create Table
-    Create a new table in a given base
-    https://meta-apis-v2.nocodb.com/#tag/DB-Table/operation/db-table-create
-    POST http://localhost:8080/api/v2/meta/bases/{baseId}/tables
-    TBD
-    """
 
     def create_table(self, name, columns, color=None):
+        """
+        [META] Create Table
+        Create a new table in a given base
+        https://meta-apis-v2.nocodb.com/#tag/DB-Table/operation/db-table-create
+        POST http://localhost:8080/api/v2/meta/bases/{baseId}/tables
+        TBD
+        """
 
         url = f"{self.host}/api/v2/meta/bases/{self.base_id}/tables"
 
@@ -248,12 +246,12 @@ class Base:
             return None
 
 
-"""
-Class for access to a NOCODB table
-"""
 
 
 class Table:
+    """
+    Class for access to a NOCODB table
+    """
 
     def __init__(self, tableid, base=None, host=None, auth_token=None, verify=True):
 
@@ -295,15 +293,15 @@ class Table:
         metadata['columnsById'] = "<skipped>"
         print(json.dumps(metadata, indent=4))
 
-    """
-    [META] Read Table
-    Read the table meta data by the given table ID
-    https://meta-apis-v2.nocodb.com/#tag/DB-Table/operation/db-table-read
-    GET http://localhost:8080/api/v2/meta/tables/{tableId}
-    """
+
 
     def read_table(self):
-
+        """
+        [META] Read Table
+        Read the table meta data by the given table ID
+        https://meta-apis-v2.nocodb.com/#tag/DB-Table/operation/db-table-read
+        GET http://localhost:8080/api/v2/meta/tables/{tableId}
+        """
         url = f"{self.host}/api/v2/meta/tables/{self.tableid}"
 
         res = self.session.get(url, params={}).json()
@@ -312,13 +310,13 @@ class Table:
 
         return res
 
-    """
-    [DATA] Create Table Records
-    https://data-apis-v2.nocodb.com/#tag/Table-Records/operation/db-data-table-row-list
-    POST http://localhost:8080/api/v2/tables/{tableId}/records
-    """
 
     def insert(self, data) -> dict:
+        """
+        [DATA] Create Table Records
+        https://data-apis-v2.nocodb.com/#tag/Table-Records/operation/db-data-table-row-list
+        POST http://localhost:8080/api/v2/tables/{tableId}/records
+        """
 
         url = f"{self.host}/api/v2/tables/{self.tableid}/records"
 
@@ -330,14 +328,13 @@ class Table:
 
         return res
 
-    """
-    [DATA] Update Table Records
-    https://data-apis-v2.nocodb.com/#tag/Table-Records/operation/db-data-table-row-update
-    PATCH http://localhost:8080/api/v2/tables/{tableId}/records
-    """
 
     def update(self, data):
-
+        """
+        [DATA] Update Table Records
+        https://data-apis-v2.nocodb.com/#tag/Table-Records/operation/db-data-table-row-update
+        PATCH http://localhost:8080/api/v2/tables/{tableId}/records
+        """
         # print("AA")
         # print("TABLE DELETE ", json.dumps(list,indent=4) )
         # print("    JSON ", json.dumps(list))
@@ -349,14 +346,14 @@ class Table:
 
         return res
 
-    """
-    [DATA] Read Table Record
-    This API endpoint allows you to retrieve a single record identified by Record-ID, serving as unique identifier for the record from a specified table.
-    https://data-apis-v2.nocodb.com/#tag/Table-Records/operation/db-data-table-row-read
-    GET http://localhost:8080/api/v2/tables/{tableId}/records/{recordId}
-    """
 
     def read_table_record(self, primary_key: any) -> dict:
+        """
+        [DATA] Read Table Record
+        This API endpoint allows you to retrieve a single record identified by Record-ID, serving as unique identifier for the record from a specified table.
+        https://data-apis-v2.nocodb.com/#tag/Table-Records/operation/db-data-table-row-read
+        GET http://localhost:8080/api/v2/tables/{tableId}/records/{recordId}
+        """
         url = f"{self.host}/api/v2/tables/{self.tableid}/records/{primary_key}"
         return self.session.get(url).json()
 
@@ -372,14 +369,14 @@ class Table:
         record = [{'Primary Key': pk, f'{key}': value}]
         return self.update(record)
 
-    """ 
-    [DATA] Count Table Records
-    This API endpoint allows you to retrieve the total number of records from a specified table or a view. You can narrow down search results by applying where query parameter
-    https://data-apis-v2.nocodb.com/#tag/Table-Records/operation/db-data-table-row-count
-    Get http://localhost:8080/api/v2/tables/{tableId}/records/count
-    """
 
     def count(self, where=None):
+        """ 
+        [DATA] Count Table Records
+        This API endpoint allows you to retrieve the total number of records from a specified table or a view. You can narrow down search results by applying where query parameter
+        https://data-apis-v2.nocodb.com/#tag/Table-Records/operation/db-data-table-row-count
+        Get http://localhost:8080/api/v2/tables/{tableId}/records/count
+        """
 
         url = f"{self.host}/api/v2/tables/{self.tableid}/records/count"
 
@@ -392,14 +389,15 @@ class Table:
 
         return res
 
-    """ 
-    [DATA] List Table Records
-    This API endpoint allows you to retrieve records from a specified table. 
-    https://data-apis-v2.nocodb.com/#tag/Table-Records/operation/db-data-table-row-list
-    Get http://localhost:8080/api/v2/tables/{tableId}/records
-    """
+
 
     def list(self, fields=None, sort=None, where=None, offset=0, limit=None):
+        """ 
+        [DATA] List Table Records
+        This API endpoint allows you to retrieve records from a specified table. 
+        https://data-apis-v2.nocodb.com/#tag/Table-Records/operation/db-data-table-row-list
+        Get http://localhost:8080/api/v2/tables/{tableId}/records
+        """
 
         url = f"{self.host}/api/v2/tables/{self.tableid}/records"
 
@@ -424,24 +422,44 @@ class Table:
         return res
 
 
-"""
-[DATA] Delete Table Records
-This API endpoint allows deleting existing records within a specified table identified by 
-an array of Record-IDs, serving as unique identifier for the record. Records to be deleted are input as an array of record-identifiers.
-https://data-apis-v2.nocodb.com/#tag/Table-Records/operation/db-data-table-row-delete
-DELETE http://localhost:8080/api/v2/tables/{tableId}/records
-"""
 
+    def delete(self, list=None):
+        """
+        [DATA] Delete Table Records
+        This API endpoint allows deleting existing records within a specified table identified by 
+        an array of Record-IDs, serving as unique identifier for the record. Records to be deleted are input as an array of record-identifiers.
+        https://data-apis-v2.nocodb.com/#tag/Table-Records/operation/db-data-table-row-delete
+        DELETE http://localhost:8080/api/v2/tables/{tableId}/records
+        """
+        url = f"{self.host}/api/v2/tables/{self.tableid}/records"
 
-def delete(self, list=None):
-    url = f"{self.host}/api/v2/tables/{self.tableid}/records"
+        # print("TABLE DELETE ", json.dumps(list,indent=4) )
+        # print("    JSON ", json.dumps(list))
 
-    # print("TABLE DELETE ", json.dumps(list,indent=4) )
-    # print("    JSON ", json.dumps(list))
+        if list is None:
+            res = self.session.delete(url)
+        else:
+            res = self.session.delete(url, data=list)
 
-    if list is None:
-        res = self.session.delete(url)
-    else:
-        res = self.session.delete(url, data=list)
+        return res
 
-    return res
+    def create_column(self, column_name, column_type, column_options=None):
+        """
+        [DATA] Create Table Column
+        This API endpoint allows creating a new column within a specified table.
+        https://data-apis-v2.nocodb.com/#tag/Table-Records/operation/db-data-table-row-create
+        POST http://localhost:8080/api/v2/tables/{tableId}/columns
+        """
+        url = f"{self.host}/api/v2/meta/{self.tableid}/columns"
+
+        data = {
+            "title": column_name,
+            "uidt": column_type
+        }
+
+        if column_options:
+            data["colOptions"] = column_options
+
+        res = self.session.post(url, json=data)
+
+        return res

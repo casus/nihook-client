@@ -476,7 +476,7 @@ class Table:
         base_id = table_metadata['base_id']
         column_link_type = table_metadata['columnsById'][linkFieldId]['colOptions']['type']
         # Encode the recordId to ensure it is URL-safe
-        encoded_record_id = urllib.parse.quote(recordId, safe='')
+        encoded_record_id = urllib.parse.quote(str(recordId), safe='')
         if not refRowPKValues:
             refRowPKValues = refRowPKValue
         if isinstance(refRowPKValues, list):

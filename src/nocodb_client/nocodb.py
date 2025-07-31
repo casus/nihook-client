@@ -324,7 +324,7 @@ class Table:
 
         # print( json.dumps(data, indent=4 ) )
 
-        res = self.session.post(url, json=data)
+        res = self.session.post(url, json=data).json()
 
         # print( json.dumps(res, indent=4 ) )
 
@@ -439,9 +439,9 @@ class Table:
         # print("    JSON ", json.dumps(list))
 
         if list is None:
-            res = self.session.delete(url)
+            res = self.session.delete(url).json()
         else:
-            res = self.session.delete(url, data=list)
+            res = self.session.delete(url, data=list).json()
 
         return res
 
@@ -462,7 +462,7 @@ class Table:
         if extra_options:
             data.update(extra_options)
 
-        res = self.session.post(url, json=data)
+        res = self.session.post(url, json=data).json()
 
         return res
 
@@ -490,12 +490,12 @@ class Table:
         if isinstance(linkedRecordPKs, list):
             for linkedRecordPK in linkedRecordPKs:
                 url = f"{self.host}/api/v1/db/data/noco/{base_id}/{self.tableid}/{encoded_record_id}/{column_link_type}/{linkFieldId}/{linkedRecordPK}"
-                res = self.session.post(url)
+                res = self.session.post(url).json()
                 if res.status_code != 200:
                     print(f"Failed to link record {linkedRecordPK} with {recordId}: {res.text}")
         else:
             url = f"{self.host}/api/v1/db/data/noco/{base_id}/{self.tableid}/{encoded_record_id}/{column_link_type}/{linkFieldId}/{linkedRecordPKs}"
-            res = self.session.post(url)
+            res = self.session.post(url).json()
             if res.status_code != 200:
                 print(f"Failed to link record {linkedRecordPKs} with {recordId}: {res.text}")
         return res

@@ -466,35 +466,35 @@ class Table:
 
         return res
 
-    def link_records(self, linkFieldId, recordId, linkedRecordPK = None, linkedRecordPKs = None) -> requests.Response:
+    def link_records(self, linkFieldId, recordId, refRowPKValue = None, refRowPKValues = None) -> requests.Response:
         """
         [DATA] Link Records
         This API endpoint allows linking records within a specified table.
         POST https://app.nocodb.com/api/v1/db/data/{orgs}/{baseName}/{tableName}/{rowId}/{relationType}/{columnName}/{refRowId}
         """
         table_metadata = self.read_table()
-        base_id = table_metadata['baseId']
+        base_id = table_metadata['base_id']
         column_link_type = table_metadata['columnsById'][linkFieldId]['colOptions']['type']
         # Encode the recordId to ensure it is URL-safe
         encoded_record_id = urllib.parse.quote(recordId, safe='')
-        if not linkedRecordPKs:
-            linkedRecordPKs = linkedRecordPK
-        if isinstance(linkedRecordPKs, list):
-            for i in range(len(linkedRecordPKs)):
-                linkedRecordPKs[i] = urllib.parse.quote(str(linkedRecordPKs[i]), safe='')
+        if not refRowPKValues:
+            refRowPKValues = refRowPKValue
+        if isinstance(refRowPKValues, list):
+            for i in range(len(refRowPKValues)):
+                refRowPKValues[i] = urllib.parse.quote(str(refRowPKValues[i]), safe='')
         else:
-            linkedRecordPKs = urllib.parse.quote(str(linkedRecordPKs), safe='')
-        
-        
-        if isinstance(linkedRecordPKs, list):
-            for linkedRecordPK in linkedRecordPKs:
-                url = f"{self.host}/api/v1/db/data/noco/{base_id}/{self.tableid}/{encoded_record_id}/{column_link_type}/{linkFieldId}/{linkedRecordPK}"
-                res = self.session.post(url).json()
+            refRowPKValues = urllib.parse.quote(str(refRowPKValues), safe='')
+
+
+        if isinstance(refRowPKValues, list):
+            for refRowPKValue in refRowPKValues:
+                url = f"{self.host}/api/v1/db/data/noco/{base_id}/{self.tableid}/{encoded_record_id}/{column_link_type}/{linkFieldId}/{refRowPKValue}"
+                res = self.session.post(url)
                 if res.status_code != 200:
-                    print(f"Failed to link record {linkedRecordPK} with {recordId}: {res.text}")
+                    print(f"Failed to link record {refRowPKValue} with {recordId}: {res.text}")
         else:
-            url = f"{self.host}/api/v1/db/data/noco/{base_id}/{self.tableid}/{encoded_record_id}/{column_link_type}/{linkFieldId}/{linkedRecordPKs}"
-            res = self.session.post(url).json()
+            url = f"{self.host}/api/v1/db/data/noco/{base_id}/{self.tableid}/{encoded_record_id}/{column_link_type}/{linkFieldId}/{refRowPKValues}"
+            res = self.session.post(url)
             if res.status_code != 200:
-                print(f"Failed to link record {linkedRecordPKs} with {recordId}: {res.text}")
-        return res
+                print(f"Failed to link record {refRowPKValues} with {recordId}: {res.text}")
+        return res.json()

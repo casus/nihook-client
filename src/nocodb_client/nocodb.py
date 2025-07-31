@@ -450,9 +450,9 @@ class Table:
         [DATA] Create Table Column
         This API endpoint allows creating a new column within a specified table.
         https://data-apis-v2.nocodb.com/#tag/Table-Records/operation/db-data-table-row-create
-        POST http://localhost:8080/api/v2/tables/{tableId}/columns
+        POST http://localhost:8080/api/v2/meta/tables/{tableId}/columns
         """
-        url = f"{self.host}/api/v2/meta/{self.tableid}/columns"
+        url = f"{self.host}/api/v2/meta/tables/{self.tableid}/columns"
 
         data = {
             "title": column_name,
@@ -472,7 +472,6 @@ class Table:
         This API endpoint allows linking records within a specified table.
         POST https://app.nocodb.com/api/v1/db/data/{orgs}/{baseName}/{tableName}/{rowId}/{relationType}/{columnName}/{refRowId}
         """
-        #  http://localhost:5555/api/v1/db/data/noco/pj8w1l6dgxb1jli/mhb1cpgito42u2y/1/hm/ch6euyw5icy01xq/https%3A%2F%2Fcodebase.helmholtz.cloud%2Fokishe32%2Fproject-for-test%2F-%2Ftree%2Fmaster%2F10__%2F1001
         table_metadata = self.read_table()
         base_id = table_metadata['baseId']
         column_link_type = table_metadata['columnsById'][linkFieldId]['colOptions']['type']

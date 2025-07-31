@@ -465,8 +465,8 @@ class Table:
         res = self.session.post(url, json=data)
 
         return res
-    
-    def link_records(self, linkFieldId, recordId, linkedRecordPKs: str| list) -> requests.Response:
+
+    def link_records(self, linkFieldId, recordId, linkedRecordPK = None, linkedRecordPKs = None) -> requests.Response:
         """
         [DATA] Link Records
         This API endpoint allows linking records within a specified table.
@@ -478,6 +478,8 @@ class Table:
         column_link_type = table_metadata['columnsById'][linkFieldId]['colOptions']['type']
         # Encode the recordId to ensure it is URL-safe
         encoded_record_id = urllib.parse.quote(recordId, safe='')
+        if not linkedRecordPKs:
+            linkedRecordPKs = linkedRecordPK
         if isinstance(linkedRecordPKs, list):
             for i in range(len(linkedRecordPKs)):
                 linkedRecordPKs[i] = urllib.parse.quote(str(linkedRecordPKs[i]), safe='')

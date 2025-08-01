@@ -510,3 +510,36 @@ class Table:
         url = f"{self.host}/api/v2/tables/{self.tableid}/links/{linkFieldId}/records/{recordId}"
         res = self.session.get(url)
         return res.json()
+
+    def unlink_records(self, linkFieldId, recordId, refRowPKValue = None, refRowPKValues = None) -> requests.Response:
+        """
+        [DATA] Unlink Records
+        This API endpoint allows unlinking records within a specified table.
+        POST https://app.nocodb.com/api/v1/db/data/{orgs}/{baseName}/{tableName}/{rowId}/{relationType}/{columnName}/{refRowId}
+        """
+        table_metadata = self.read_table()
+        base_id = table_metadata['base_id']
+        column_link_type = table_metadata['columnsById'][linkFieldId]['colOptions']['type']
+        # Encode the recordId to ensure it is URL-safe
+        encoded_record_id = urllib.parse.quote(str(recordId), safe='')
+        if not refRowPKValues:
+            refRowPKValues = refRowPKValue
+        if isinstance(refRowPKValues, list):
+            for i in range(len(refRowPKValues)):
+                refRowPKValues[i] = urllib.parse.quote(str(refRowPKValues[i]), safe='')
+        else:
+            refRowPKValues = urllib.parse.quote(str(refRowPKValues), safe='')
+
+
+        if isinstance(refRowPKValues, list):
+            for refRowPKValue in refRowPKValues:
+                url = f"{self.host}/api/v1/db/data/noco/{base_id}/{self.tableid}/{encoded_record_id}/{column_link_type}/{linkFieldId}/{refRowPKValue}"
+                res = self.session.delete(url)
+                if res.status_code != 200:
+                    print(f"Failed to link record {refRowPKValue} with {recordId}: {res.text}")
+        else:
+            url = f"{self.host}/api/v1/db/data/noco/{base_id}/{self.tableid}/{encoded_record_id}/{column_link_type}/{linkFieldId}/{refRowPKValues}"
+            res = self.session.delete(url)
+            if res.status_code != 200:
+                print(f"Failed to link record {refRowPKValues} with {recordId}: {res.text}")
+        return res.json()

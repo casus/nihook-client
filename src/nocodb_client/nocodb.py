@@ -498,3 +498,15 @@ class Table:
             if res.status_code != 200:
                 print(f"Failed to link record {refRowPKValues} with {recordId}: {res.text}")
         return res.json()
+    
+
+    def list_linked_records(self, linkFieldId, recordId) -> requests.Response:
+        """ 
+        [DATA] List Linked Records
+        This API endpoint allows you to retrieve all records linked to a specified record within a table.
+        https://data-apis-v2.nocodb.com/#tag/Table-Records/operation/db-data-table-row-linked-records
+        Get https://app.nocodb.com/api/v2/tables/{tableId}/links/{linkFieldId}/records/{recordId}
+        """
+        url = f"{self.host}/api/v2/tables/{self.tableid}/links/{linkFieldId}/records/{recordId}"
+        res = self.session.get(url)
+        return res.json()

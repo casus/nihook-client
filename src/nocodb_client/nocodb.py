@@ -507,7 +507,8 @@ class Table:
         https://data-apis-v2.nocodb.com/#tag/Table-Records/operation/db-data-table-row-linked-records
         Get https://app.nocodb.com/api/v2/tables/{tableId}/links/{linkFieldId}/records/{recordId}
         """
-        url = f"{self.host}/api/v2/tables/{self.tableid}/links/{linkFieldId}/records/{recordId}"
+        encoded_record_id = urllib.parse.quote(str(recordId), safe='')
+        url = f"{self.host}/api/v2/tables/{self.tableid}/links/{linkFieldId}/records/{encoded_record_id}"
         res = self.session.get(url)
         return res.json()
 

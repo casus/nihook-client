@@ -543,8 +543,15 @@ class Table:
         """
         encoded_record_id = urllib.parse.quote(str(recordId), safe='')
         url = f"{self.host}/api/v2/tables/{self.tableid}/links/{linkFieldId}/records/{encoded_record_id}"
-        res = self.session.get(url)
-        return res.json()
+        res = self.session.get(url).json()
+        links_list = res.get('list')
+        if (not links_list is None):
+            totalRows = res.get('pageInfo', {}).get('totalRows', 0)
+            if (totalRows > len(links_list)):
+                url = f"{self.host}/api/v2/tables/{self.tableid}/links/{linkFieldId}/records/{encoded_record_id}?limit={totalRows}"
+                res = self.session.get(url).json()
+
+        return res
 
     def unlink_records(self, linkFieldId, recordId, refRowPKValue = None, refRowPKValues = None) -> requests.Response:
         """

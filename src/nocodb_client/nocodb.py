@@ -409,9 +409,43 @@ class Table:
             params['fields'] = fields
         if sort:
             params['sort'] = sort
+        if offset:
+            params['offset'] = offset
         if where:
             params['where'] = where
             print("                WHERE ", where)
+        if limit:
+            params['limit'] = limit
+
+        res = self.session.get(url, params=params).json()
+
+        # print(" #### page info #### ")
+        # print( json.dumps(res['pageInfo'], indent=4 ) )
+        # print(" ######## ")
+
+        return res
+    
+    def list_all_records(self, fields=None, sort=None, where=None, offset=0):
+        """ 
+        [DATA] List All Table Records
+        This API endpoint allows you to retrieve records from a specified table. 
+        https://data-apis-v2.nocodb.com/#tag/Table-Records/operation/db-data-table-row-list
+        Get http://localhost:8080/api/v2/tables/{tableId}/records
+        """
+
+        url = f"{self.host}/api/v2/tables/{self.tableid}/records"
+        params = {}
+        limit = self.count().get('count', 0)
+
+        if fields:
+            params['fields'] = fields
+        if sort:
+            params['sort'] = sort
+        if offset:
+            params['offset'] = offset
+        if where:
+            params['where'] = where
+            print("WHERE ", where)
         if limit:
             params['limit'] = limit
 

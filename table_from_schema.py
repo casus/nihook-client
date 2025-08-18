@@ -9,7 +9,8 @@ import nocodb
 import prepare_json
 
 
-special_columns = [{
+special_columns = [
+    {
     "column_name": "URL",
     "title": "URL",
     "uidt": "URL",
@@ -20,11 +21,18 @@ special_columns = [{
     "column_name": "status",
     "title": "status",
     "uidt": "SingleSelect",
-    "dt": "character varying",
+    "dt": "varchar",
     "dtx": "specificType",
-    "dtxp": "'current','deleted','replaced'",
+    "colOptions": {
+        "options":
+        [
+            {"title": "current"},
+            {"title": "deleted"},
+            {"title": "replaced"}
+        ]
+    },
     "dtxs": "",
-    "cdf": "'current'"
+    "cdf": "current"
 }, {
     "column_name": "branch",
     "title": "branch",

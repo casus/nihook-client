@@ -24,7 +24,6 @@ jeepney==0.9.0
 keyring==25.6.0
 more-itertools==10.7.0
 msgpack==1.1.1
--e git+ssh://git@codebase.helmholtz.cloud/casus-datalad/nocodb_automation.git@aa805e2e82d62b62f6924fc3361ea2c7eab2be41#egg=nocodb_client
 packaging==25.0
 pbs-installer==2025.7.12
 pkginfo==1.12.1.2

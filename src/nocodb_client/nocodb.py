@@ -432,7 +432,6 @@ class Table:
         https://data-apis-v2.nocodb.com/#tag/Table-Records/operation/db-data-table-row-list
         Get http://localhost:8080/api/v2/tables/{tableId}/records
         """
-
         url = f"{self.host}/api/v2/tables/{self.tableid}/records"
         params = {}
         limit = self.count().get('count', 0)
@@ -450,7 +449,14 @@ class Table:
             params['limit'] = limit
 
         res = self.session.get(url, params=params).json()
-
+        page_number = res.get('pageInfo', {}).get('pageNumber', 1)
+        # Make sure to get ALL results (not just first 1k)
+        while (res.get('pageInfo', {}).get('isLastPage', True) == False):
+            params['page'] = page_number + 1
+            res2 = self.session.get(url, params=params).json()
+            res['list'].extend(res2.get('list', []))
+            res['pageInfo'] = res2.get('pageInfo', {})
+            page_number = page_number + 1
         # print(" #### page info #### ")
         # print( json.dumps(res['pageInfo'], indent=4 ) )
         # print(" ######## ")

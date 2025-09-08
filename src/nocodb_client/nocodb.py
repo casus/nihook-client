@@ -451,12 +451,15 @@ class Table:
         res = self.session.get(url, params=params).json()
         page_number = res.get('pageInfo', {}).get('pageNumber', 1)
         # Make sure to get ALL results (not just first 1k)
+        print("Is last page? ")
+        print(res['pageInfo']['isLastPage'])
         while (res.get('pageInfo', {}).get('isLastPage', True) == False):
             params['page'] = page_number + 1
             res2 = self.session.get(url, params=params).json()
             res['list'].extend(res2.get('list', []))
             res['pageInfo'] = res2.get('pageInfo', {})
             page_number = page_number + 1
+            print("Page number: ", page_number)
         # print(" #### page info #### ")
         # print( json.dumps(res['pageInfo'], indent=4 ) )
         # print(" ######## ")

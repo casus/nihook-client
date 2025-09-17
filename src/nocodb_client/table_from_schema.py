@@ -5,9 +5,8 @@ import os
 import json
 import argparse
 
-from . import nocodb
-from . import prepare_json
-
+import nocodb
+import prepare_json
 
 special_columns = [
     {

@@ -1,9 +1,7 @@
 import sys
-import json
 
 import pandas
 import dateutil.parser
-from numpy.ma.core import append
 
 """
 Prepare JSON metadata from a 'DATASET.json' file before it can be entered to Nocodb

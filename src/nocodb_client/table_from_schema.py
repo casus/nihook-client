@@ -149,10 +149,12 @@ def create_new_table( base, name, columns ):
 
         table = nocodb.Table(table_id, host=nocodb_host, auth_token=nocodb_token, verify=nocodb_ssl_cert)
         details = table.read_table()
+        return table_id
 
         # print(json.dumps(details,indent=4))
         # for c in details['columns']:
         #     print(f"    column '{c['title']}' of type {c['uidt']} / {c['dt']}")
+    return None
 
 
 def create_new_table_with_params( base, name, columns, nocodb_host, nocodb_token, nocodb_ssl_cert ):

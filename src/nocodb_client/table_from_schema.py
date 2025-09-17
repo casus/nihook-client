@@ -7,6 +7,8 @@ import argparse
 
 import nocodb
 import prepare_json
+from utils import (NOCODB_HOST, NOCODB_TOKEN, NOCODB_SSL_CERT)
+
 
 special_columns = [
     {
@@ -140,14 +142,14 @@ def create_new_table( base, name, columns ):
     assert base is not None
     assert name is not None
 
-    base = nocodb.Base(base, host=nocodb_host, auth_token=nocodb_token, verify=nocodb_ssl_cert)
+    base = nocodb.Base(base, host=NOCODB_HOST, auth_token=NOCODB_TOKEN, verify=NOCODB_SSL_CERT)
     table_id = base.create_table(name, columns)
 
     if table_id:
 
         # print(f"new table {table_id} with columns:")
 
-        table = nocodb.Table(table_id, host=nocodb_host, auth_token=nocodb_token, verify=nocodb_ssl_cert)
+        table = nocodb.Table(table_id, host=NOCODB_HOST, auth_token=NOCODB_TOKEN, verify=NOCODB_SSL_CERT)
         details = table.read_table()
         return table_id
 
@@ -190,10 +192,6 @@ Create a new NOCODB table from an existing JSON schema file
 """
 
 if __name__ == '__main__':
-
-    nocodb_host = os.getenv('NOCODB_HOST', 'http://localhost')
-    nocodb_token = os.getenv('NOCODB_TOKEN', 'none')
-    nocodb_ssl_cert = os.getenv('NOCODB_SSL_CERT', True)
 
     parser = argparse.ArgumentParser(description='Create a new NOCODB table from an existing JSON schema file')
     parser.add_argument("schema", help="Existing JSON schema file as template for the NOCODB table")

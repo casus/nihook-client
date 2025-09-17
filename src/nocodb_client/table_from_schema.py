@@ -210,7 +210,7 @@ if __name__ == '__main__':
 
         table_id = create_new_table( args.base, args.name, columns )
         if table_id:
-            print(f"New Table Id: '{table_id}' ")
+            print(f"New Table Id: {table_id} ")
         else:
             print("Failed to create new table")
 

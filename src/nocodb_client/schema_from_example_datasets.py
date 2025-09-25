@@ -124,9 +124,13 @@ class SchemaGenerator:
                         typename= "number"
                     elif type(v[0]) is str:
                         typename= "string"
+                    elif type(v[0]) is list:
+                        typename= "" # will be handled below, no warning
+                    elif type(v[0]) is bool:
+                        typename= "" # will be handled below, no warning
                     else:
-                        typename= ""
-                        print("    unknown array type name for ", type(v[0]))
+                        typename= "" # unhandled type?
+                        print("    unknown array type name for type", type(v[0]), " for value ", v[0] )
 
                     if k not in output_schema['properties']:
                         output_schema['properties'].update( { k : { "type": "array", "items": { "type": typename } } } )

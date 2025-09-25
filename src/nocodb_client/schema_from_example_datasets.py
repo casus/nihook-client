@@ -12,6 +12,7 @@ from jsonschema import validate
 import pandas
 import dateutil.parser
 
+
 # TODO replace genson and remove jsonschema in order to:
 # - to make this script self-contained so that ony copy it to datalad repos
 # - we can detect and mark special string types such as datatime strings
@@ -359,10 +360,6 @@ def check_schema( schema ):
 Generate a JSON schema from multiple DATASET.json example files
 """
 if __name__ == '__main__':
-
-    nocodb_host = os.getenv('NOCODB_HOST', 'http://localhost')
-    nocodb_token = os.getenv('NOCODB_TOKEN', 'none')
-    nocodb_ssl_cert = os.getenv('NOCODB_SSL_CERT', True)
 
     parser = argparse.ArgumentParser(description='Generate a JSON schema from multiple DATASET.json example files')
     parser.add_argument("input", nargs='+', default=None,

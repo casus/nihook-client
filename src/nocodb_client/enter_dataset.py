@@ -3,20 +3,16 @@
 import argparse
 import json
 import os
-import sys
 
 import prepare_json
 import nocodb
-
+from utils import (NOCODB_HOST, NOCODB_TOKEN, NOCODB_SSL_CERT)
 """
 Read one ore more 'DATASET.json' files and add it's contents to an existing NocoDB table
 """
 
 if __name__ == '__main__':
 
-    nocodb_host = os.getenv('NOCODB_HOST', 'http://localhost')
-    nocodb_token = os.getenv('NOCODB_TOKEN', 'none')
-    nocodb_ssl_cert = os.getenv('NOCODB_SSL_CERT', True)
 
     parser = argparse.ArgumentParser()
     parser.add_argument("inputs", nargs='+', help="Input JSON files")
@@ -26,7 +22,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     tableid = args.table
-    table = nocodb.Table( tableid, host=nocodb_host, auth_token=nocodb_token, verify=nocodb_ssl_cert )
+    table = nocodb.Table( tableid, host=NOCODB_HOST, auth_token=NOCODB_TOKEN, verify=NOCODB_SSL_CERT )
 
     for f in args.inputs:
 

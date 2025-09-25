@@ -7,6 +7,7 @@ import argparse
 
 import nocodb
 import prepare_json
+from utils import (NOCODB_HOST, NOCODB_TOKEN, NOCODB_SSL_CERT)
 
 
 special_columns = [
@@ -24,7 +25,7 @@ special_columns = [
     "dt": "varchar",
     "dtx": "specificType",
     "colOptions": {
-        "options":
+        "options": 
         [
             {"title": "current"},
             {"title": "deleted"},
@@ -141,8 +142,33 @@ def create_new_table( base, name, columns ):
     assert base is not None
     assert name is not None
 
+    base = nocodb.Base(base, host=NOCODB_HOST, auth_token=NOCODB_TOKEN, verify=NOCODB_SSL_CERT)
+    table_id = base.create_table(name, columns)
+
+    if table_id:
+
+        # print(f"new table {table_id} with columns:")
+
+        table = nocodb.Table(table_id, host=NOCODB_HOST, auth_token=NOCODB_TOKEN, verify=NOCODB_SSL_CERT)
+        details = table.read_table()
+        return table_id
+
+        # print(json.dumps(details,indent=4))
+        # for c in details['columns']:
+        #     print(f"    column '{c['title']}' of type {c['uidt']} / {c['dt']}")
+    return None
+
+
+def create_new_table_with_params( base, name, columns, nocodb_host, nocodb_token, nocodb_ssl_cert ):
+
+    assert base is not None
+    assert name is not None
+
     base = nocodb.Base(base, host=nocodb_host, auth_token=nocodb_token, verify=nocodb_ssl_cert)
     table_id = base.create_table(name, columns)
+
+    if not table_id:
+        raise RuntimeError(f"Failed to create table '{name}' in base '{base}'.")
 
     if table_id:
 
@@ -154,17 +180,18 @@ def create_new_table( base, name, columns ):
         # print(json.dumps(details,indent=4))
         # for c in details['columns']:
         #     print(f"    column '{c['title']}' of type {c['uidt']} / {c['dt']}")
+        return table_id
 
+
+def create_new_table_from_schema(nocodb_host, nocodb_token, nocodb_ssl_cert, base_id, table_name, schema):
+    columns= schema_to_nocodb_definition( base_id, table_name, schema )
+    return create_new_table_with_params( base_id, table_name, columns, nocodb_host, nocodb_token, nocodb_ssl_cert )
 
 """
 Create a new NOCODB table from an existing JSON schema file
 """
 
 if __name__ == '__main__':
-
-    nocodb_host = os.getenv('NOCODB_HOST', 'http://localhost')
-    nocodb_token = os.getenv('NOCODB_TOKEN', 'none')
-    nocodb_ssl_cert = os.getenv('NOCODB_SSL_CERT', True)
 
     parser = argparse.ArgumentParser(description='Create a new NOCODB table from an existing JSON schema file')
     parser.add_argument("schema", help="Existing JSON schema file as template for the NOCODB table")
@@ -181,7 +208,11 @@ if __name__ == '__main__':
  
     if not args.dryrun:
 
-        create_new_table( args.base, args.name, columns )
+        table_id = create_new_table( args.base, args.name, columns )
+        if table_id:
+            print(f"New Table Id: {table_id} ")
+        else:
+            print("Failed to create new table")
 
     else:
 

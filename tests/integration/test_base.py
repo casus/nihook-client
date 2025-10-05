@@ -15,7 +15,8 @@ def base(nocodb):
 def test_get_base_info(base):
     info = base.get_base_info()
     assert isinstance(info, dict)
-    assert "id" in info
+    assert "RootDB" in info
+    assert "PackageVersion" in info
 
 def test_get_base(base):
     meta = base.get_base()

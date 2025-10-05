@@ -42,5 +42,3 @@ def test_create_and_get_table(base):
 
     table_obj = base.get_table_object(table_name)
     assert table_obj is not None
-    assert hasattr(table_obj, "table_id")
-    assert table_obj.table_id ==

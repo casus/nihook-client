@@ -18,7 +18,7 @@ def test_create_and_delete_base(nocodb):
 
     # Delete the base
     del_res = nocodb.delete_base(base_id)
-    assert del_res.get("success") or del_res.get("msg") == "Base deleted successfully"
+    assert del_res is True
 
 def test_get_base_object(nocodb):
     # Create a base for testing

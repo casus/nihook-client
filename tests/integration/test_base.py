@@ -31,8 +31,8 @@ def test_list_tables_empty(base):
 def test_create_and_get_table(base):
     table_name = "TestTable"
     columns = [
-        {"name": "Name", "type": "text"},
-        {"name": "Age", "type": "number"}
+        {"title": "Name", "type": "text"},
+        {"title": "Age", "type": "number"}
     ]
     table_id = base.create_table(name=table_name, columns=columns)
     assert table_id is not None

@@ -65,6 +65,7 @@ integration_tests:
         curl -s $NOCODB_HOST &>/dev/null && echo "✅ NocoDB is ready!" && break
         echo "⏳ Waiting ($i)..."
         sleep 3
+      done
     # 🔹 Generate admin user and obtain API token
     - |
       ADMIN_EMAIL="admin@gmail.com"
@@ -106,7 +107,6 @@ integration_tests:
 
       echo "✅ Got API token: ${token:0:10}..."
       export NOCODB_TOKEN=$token
-      echo "NOCODB_TOKEN=$token" >> variables.env
   script:
     - echo "Running integration tests against $NOCODB_HOST"
     - pytest tests/integration -v --maxfail=1 --disable-warnings

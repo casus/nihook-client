@@ -17,33 +17,100 @@
 # https://gitlab.com/gitlab-org/gitlab/-/blob/master/lib/gitlab/ci/templates/Getting-Started.gitlab-ci.yml
 
 stages:          # List of stages for jobs, and their order of execution
-  - build
   - test
-  - deploy
 
-build-job:       # This job runs in the build stage, which runs first.
-  stage: build
-  script:
-    - echo "Compiling the code..."
-    - echo "Compile complete."
 
-unit-test-job:   # This job runs in the test stage.
-  stage: test    # It only starts when the job in the build stage completes successfully.
-  script:
-    - echo "Running unit tests... This will take about 60 seconds."
-    - sleep 60
-    - echo "Code coverage is 90%"
 
-lint-test-job:   # This job also runs in the test stage.
-  stage: test    # It can run at the same time as unit-test-job (in parallel).
-  script:
-    - echo "Linting code... This will take about 10 seconds."
-    - sleep 10
-    - echo "No lint issues found."
+variables:
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+  PYTHON_VERSION: "3.12"
 
-deploy-job:      # This job runs in the deploy stage.
-  stage: deploy  # It only runs when *both* jobs in the test stage complete successfully.
-  environment: production
+cache:
+  key: pip-cache
+  paths:
+    - .cache/pip
+
+unit-tests:
+  stage: test
+  image: python:3.12
+  before_script:
+    - pip install --upgrade pip
+    - pip install . pytest requests-mock
   script:
-    - echo "Deploying application..."
-    - echo "Application successfully deployed."
+    - pytest tests/unit -v
+  artifacts:
+    when: always
+    reports:
+      junit: report.xml
+    paths:
+      - report.xml
+
+integration_tests:
+  stage: test
+  image: python:${PYTHON_VERSION}
+  services:
+    - name: nocodb/nocodb:latest
+      alias: nocodb
+  variables:
+    NOCODB_HOST: http://nocodb:8080
+    PYTHONUNBUFFERED: "1"
+  before_script:
+    - pip install --upgrade pip
+    - pip install .[dev] || pip install .
+    - pip install pytest requests
+    # wait for NocoDB to fully start up
+    - echo "Waiting for NocoDB to be ready..."
+    - |
+      for i in {1..40}; do
+        curl -s $NOCODB_HOST &>/dev/null && echo "✅ NocoDB is ready!" && break
+        echo "⏳ Waiting ($i)..."
+        sleep 3
+    # 🔹 Generate admin user and obtain API token
+    - |
+      ADMIN_EMAIL="admin@gmail.com"
+      ADMIN_PASSWORD="12345678"
+      echo "Creating NocoDB admin user $ADMIN_EMAIL"
+
+      response=$(curl -s -X POST \
+        -H "Content-Type: application/json" \
+        -d '{
+              "email": "'$ADMIN_EMAIL'",
+              "password": "'"$ADMIN_PASSWORD"'",
+              "ignore_subscribe": true,
+              "token": ""
+            }' \
+        "$NOCODB_HOST/api/v1/auth/user/signup")
+
+      user_token=$(echo "$response" | jq -r '.token')
+
+      if [[ -z "$user_token" || "$user_token" == "null" ]]; then
+        echo "❌ Failed to sign up admin user:"
+        echo "$response"
+        exit 1
+      fi
+
+      echo "✅ Admin user created. Fetching default token..."
+
+      response=$(curl -s -X POST "$NOCODB_HOST/api/v1/tokens" \
+        -H "Content-Type: application/json" \
+        -H "xc-auth: $user_token" \
+        -d '{"description":"Default-Token"}')
+
+      token=$(echo "$response" | jq -r '.token')
+
+      if [[ -z "$token" || "$token" == "null" ]]; then
+        echo "❌ Failed to create NocoDB token:"
+        echo "$response"
+        exit 1
+      fi
+
+      echo "✅ Got API token: ${token:0:10}..."
+      export NOCODB_TOKEN=$token
+      echo "NOCODB_TOKEN=$token" >> variables.env
+  script:
+    - echo "Running integration tests against $NOCODB_HOST"
+    - pytest tests/integration -v --maxfail=1 --disable-warnings
+  only:
+    - main
+    - merge_requests
+

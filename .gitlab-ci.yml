@@ -110,5 +110,5 @@ integration_tests:
       export NOCODB_TOKEN=$token
   script:
     - echo "Running integration tests against $NOCODB_HOST"
-    - pytest tests/integration -v --maxfail=1 --disable-warnings
+    - pytest tests/integration -v --disable-warnings
 

@@ -110,7 +110,4 @@ integration_tests:
   script:
     - echo "Running integration tests against $NOCODB_HOST"
     - pytest tests/integration -v --maxfail=1 --disable-warnings
-  only:
-    - main
-    - merge_requests
 

@@ -23,6 +23,8 @@ class Nocodb:
         self.session.headers.update({"accept": "application/json", "xc-token": self.auth_token})
         self.session.verify = self.verify
 
+    def _url(self, path):
+        return f"{self.host}/api/v2/meta/bases/{path}"
 
     def list_bases(self) -> dict:
         """ 
@@ -31,7 +33,7 @@ class Nocodb:
         https://meta-apis-v2.nocodb.com/#tag/Base/operation/base-list
         GET http://localhost:8080/api/v2/meta/bases/
         """
-        url = f"{self.host}/api/v2/meta/bases/"
+        url = self._url("")
 
         res = self.session.get(url, params={}).json()
 
@@ -52,7 +54,7 @@ class Nocodb:
         POST http://localhost:8080/api/v2/meta/bases/
         """
 
-        url = f"{self.host}/api/v2/meta/bases/"
+        url = self._url("")
 
         data = {"title": title}
         if color:
@@ -87,10 +89,9 @@ class Nocodb:
         """
         [META] Delete Base
         Delete the given base
-        https://meta-apis-v2.nocodb.com/#tag/Base/operation/base-delete
         DELETE http://localhost:8080/api/v2/meta/bases/{baseId}
         """
-        url = f'{self.host}/api/v2/meta/bases/{base_id}'
+        url = self._url(base_id)
         headers = {"accept": "application/json", "xc-token": self.auth_token}
         return requests.delete(url, headers=headers).json()
 
@@ -144,6 +145,9 @@ class Base:
         print(json.dumps(self.info, indent=4))
         print(json.dumps(self.metadata, indent=4))
 
+    def _url(self, path):
+        return f"{self.host}/api/v2/meta/bases/{self.base_id}/{path}"
+
 
     def get_base_info(self) -> dict:
         """
@@ -153,7 +157,7 @@ class Base:
         GET http://localhost:8080/api/v2/meta/bases/{baseId}/info
         """
 
-        url = f"{self.host}/api/v2/meta/bases/{self.base_id}/info"
+        url = self._url("info")
 
         res = self.session.get(url, params={}).json()
 
@@ -170,7 +174,7 @@ class Base:
         GET http://localhost:8080/api/v2/meta/bases/{baseId}
         """
 
-        url = f"{self.host}/api/v2/meta/bases/{self.base_id}"
+        url = self._url("")
 
         res = self.session.get(url, params={}).json()
 
@@ -187,7 +191,7 @@ class Base:
         GET http://localhost:8080/api/v2/meta/bases/{baseId}/tables
         """
 
-        url = f"{self.host}/api/v2/meta/bases/{self.base_id}/tables"
+        url = self._url("tables")
 
         res = self.session.get(url, params={}).json()
 
@@ -210,7 +214,7 @@ class Base:
         TBD
         """
 
-        url = f"{self.host}/api/v2/meta/bases/{self.base_id}/tables"
+        url = self._url("tables")
 
         data = {
             "columns": columns,
@@ -296,6 +300,12 @@ class Table:
         print(json.dumps(metadata, indent=4))
 
 
+    def _meta_url(self, path: str) -> str:
+        return f"{self.host}/api/v2/meta/tables/{self.tableid}/{path}"
+
+    def _data_url(self, path: str) -> str:
+        return f"{self.host}/api/v2/tables/{self.tableid}/{path}"
+
 
     def read_table(self):
         """
@@ -304,7 +314,7 @@ class Table:
         https://meta-apis-v2.nocodb.com/#tag/DB-Table/operation/db-table-read
         GET http://localhost:8080/api/v2/meta/tables/{tableId}
         """
-        url = f"{self.host}/api/v2/meta/tables/{self.tableid}"
+        url = self._meta_url("")
 
         res = self.session.get(url, params={}).json()
 
@@ -320,7 +330,7 @@ class Table:
         POST http://localhost:8080/api/v2/tables/{tableId}/records
         """
 
-        url = f"{self.host}/api/v2/tables/{self.tableid}/records"
+        url = self._data_url("records")
 
         # print( json.dumps(data, indent=4 ) )
 
@@ -341,7 +351,7 @@ class Table:
         # print("TABLE DELETE ", json.dumps(list,indent=4) )
         # print("    JSON ", json.dumps(list))
 
-        url = f"{self.host}/api/v2/tables/{self.tableid}/records"
+        url = self._data_url("records")
 
         # print( json.dumps(data, indent=4 ) )
         res= self.session.patch(url, data=data).json()
@@ -356,7 +366,7 @@ class Table:
         https://data-apis-v2.nocodb.com/#tag/Table-Records/operation/db-data-table-row-read
         GET http://localhost:8080/api/v2/tables/{tableId}/records/{recordId}
         """
-        url = f"{self.host}/api/v2/tables/{self.tableid}/records/{primary_key}"
+        url = self._data_url(f"records/{primary_key}")
         return self.session.get(url).json()
 
     def update_record(self, pk: int, key: str, value: object) -> dict:
@@ -380,7 +390,7 @@ class Table:
         Get http://localhost:8080/api/v2/tables/{tableId}/records/count
         """
 
-        url = f"{self.host}/api/v2/tables/{self.tableid}/records/count"
+        url = self._data_url("records/count")
 
         params = {}
 
@@ -401,7 +411,7 @@ class Table:
         Get http://localhost:8080/api/v2/tables/{tableId}/records
         """
 
-        url = f"{self.host}/api/v2/tables/{self.tableid}/records"
+        url = self._data_url("records")
 
         params = {}
 
@@ -432,7 +442,7 @@ class Table:
         https://data-apis-v2.nocodb.com/#tag/Table-Records/operation/db-data-table-row-list
         Get http://localhost:8080/api/v2/tables/{tableId}/records
         """
-        url = f"{self.host}/api/v2/tables/{self.tableid}/records"
+        url = self._data_url("records")
         params = {}
         limit = self.count().get('count', 0)
 
@@ -476,7 +486,7 @@ class Table:
         https://data-apis-v2.nocodb.com/#tag/Table-Records/operation/db-data-table-row-delete
         DELETE http://localhost:8080/api/v2/tables/{tableId}/records
         """
-        url = f"{self.host}/api/v2/tables/{self.tableid}/records"
+        url = self._data_url("records")
 
         # print("TABLE DELETE ", json.dumps(list,indent=4) )
         # print("    JSON ", json.dumps(list))
@@ -495,7 +505,7 @@ class Table:
         https://data-apis-v2.nocodb.com/#tag/Table-Records/operation/db-data-table-row-create
         POST http://localhost:8080/api/v2/meta/tables/{tableId}/columns
         """
-        url = f"{self.host}/api/v2/meta/tables/{self.tableid}/columns"
+        url = self._meta_url("columns")
 
         data = {
             "title": column_name,
@@ -551,13 +561,13 @@ class Table:
         Get https://app.nocodb.com/api/v2/tables/{tableId}/links/{linkFieldId}/records/{recordId}
         """
         encoded_record_id = urllib.parse.quote(str(recordId), safe='')
-        url = f"{self.host}/api/v2/tables/{self.tableid}/links/{linkFieldId}/records/{encoded_record_id}"
+        url = self._data_url(f"links/{linkFieldId}/records/{encoded_record_id}")
         res = self.session.get(url).json()
         links_list = res.get('list')
         if (not links_list is None):
             totalRows = res.get('pageInfo', {}).get('totalRows', 0)
             if (totalRows > len(links_list)):
-                url = f"{self.host}/api/v2/tables/{self.tableid}/links/{linkFieldId}/records/{encoded_record_id}?limit={totalRows}"
+                url = self._data_url(f"links/{linkFieldId}/records/{encoded_record_id}?limit={totalRows}")
                 res = self.session.get(url).json()
 
         return res

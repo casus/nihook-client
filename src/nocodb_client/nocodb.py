@@ -4,13 +4,16 @@ from enum import Enum
 
 import requests
 import json
-
 import urllib
+import logging
+
+# inherit the parent logger
+log = logging.getLogger('')
+log.propagate= True
 
 """
 Class for access to a NOCODB instance
 """
-
 
 class Nocodb:
 
@@ -23,8 +26,10 @@ class Nocodb:
         self.session.headers.update({"accept": "application/json", "xc-token": self.auth_token})
         self.session.verify = self.verify
 
+
     def _url(self, path):
         return f"{self.host}/api/v2/meta/bases/{path}"
+
 
     def list_bases(self) -> dict:
         """ 
@@ -34,17 +39,18 @@ class Nocodb:
         GET http://localhost:8080/api/v2/meta/bases/
         """
         url = self._url("")
-
+        log.debug(f"Nocodb list_bases() url={url}")
         res = self.session.get(url, params={}).json()
-
-        # print(json.dumps(res, indent=4))
+        log.debug(f"  response", extra={"res": res})
 
         ret = {}
         for i in res['list']:
-            # print( i['title'], i['id'] )
             ret[i['id']] = i['title']
 
+        log.debug(f"return", extra={"ret": ret})
+
         return ret
+
 
     def create_base(self, title, color=None, description=None, base_type=None) -> dict:
         """
@@ -61,18 +67,20 @@ class Nocodb:
             data["color"] = color
         if description:
             data["description"] = description
-        # TODO this won't be returned
+
         if base_type:
             data["type"] = base_type.name
 
+        log.debug(f"Nocodb create_base() url={url}", extra={"data": data})
         res = self.session.post(url, data=data).json()
+        log.debug(f"  response", extra={"res": res})
 
         if 'msg' in res and res['msg'] == 'Invalid token':
+            log.error(f"Nocodb create_base() 'Invalid token' url={url}", extra={"data": data, "res": res})
             raise Exception("Invalid token")
 
-        # print( json.dumps(res, indent=4 ) )
-
         return res
+
 
     def get_base_object(self, title):
 
@@ -82,6 +90,9 @@ class Nocodb:
         for base_id, base_title in all_bases.items():
             if title == base_title:
                 return Base(base_id, nocodb=self)
+
+        log.warning(f"Nocodb get_base_object(): No base with title '{title}' found")
+
         return None
 
 
@@ -93,7 +104,12 @@ class Nocodb:
         """
         url = self._url(base_id)
         headers = {"accept": "application/json", "xc-token": self.auth_token}
-        return requests.delete(url, headers=headers).json()
+
+        log.debug(f"Nocodb delete_base() url={url}", extra= {"headers": headers})
+        res= requests.delete(url, headers=headers).json()
+        log.debug(f"  response", extra={"res": res})
+
+        return res
 
 
 """
@@ -135,15 +151,18 @@ class Base:
         self.info = self.get_base_info()
         self.metadata = self.get_base()
 
+
     class Type(Enum):
         database = 'database'
         documentation = 'documentation'
         dashboard = 'dashboard'
 
+
     def debug(self):
         print("class Base: ", self.base_id)
         print(json.dumps(self.info, indent=4))
         print(json.dumps(self.metadata, indent=4))
+
 
     def _url(self, path):
         return f"{self.host}/api/v2/meta/bases/{self.base_id}/{path}"
@@ -158,10 +177,9 @@ class Base:
         """
 
         url = self._url("info")
-
+        log.debug(f"Base get_base_info() url={url}")
         res = self.session.get(url, params={}).json()
-
-        # print( json.dumps(res, indent=4 ) )
+        log.debug(f"  response", extra={"res": res})
 
         return res
 
@@ -175,10 +193,9 @@ class Base:
         """
 
         url = self._url("")
-
+        log.debug(f"Base get_base() url={url}")
         res = self.session.get(url, params={}).json()
-
-        # print( json.dumps(res, indent=4 ) )
+        log.debug(f"  response", extra={"res": res})
 
         return res
 
@@ -192,15 +209,15 @@ class Base:
         """
 
         url = self._url("tables")
-
+        log.debug(f"Base list_tables() url={url}")
         res = self.session.get(url, params={}).json()
-
-        # print( json.dumps(res, indent=4 ) )
+        log.debug(f"  response", extra={"res": res})
 
         ret = {}
         for i in res['list']:
-            # print( i['title'], i['id'] )
             ret[i['title']] = i['id']
+
+        log.debug(f"  return", extra={"ret": ret})
 
         return ret
 
@@ -221,22 +238,20 @@ class Base:
             "table_name": name,
             "title": name
         }
-        # print( json.dumps(data, indent=4 ) )
 
         if color:
             data["color"] = color
 
+        log.debug(f"Base create_table() url={url}", extra={"data": data})
         res = self.session.post(url, json=data).json()
+        log.debug(f"  response", extra={"res": res})
 
         if "errors" in res or "msg" in res:
-            print("ERROR: ")
-            print(json.dumps(res, indent=4))
+            log.error(f"Base create_table() url={url}", extra={"data": data, "res": res})
             return None
 
-        # print( json.dumps(res, indent=4 ) )
-        # print(" --> newly created table id ", res['id'] )
-
         return res['id']
+
 
     def get_table_object(self, title):
 
@@ -250,8 +265,6 @@ class Base:
         else:
 
             return None
-
-
 
 
 class Table:
@@ -289,12 +302,16 @@ class Table:
             self.session.verify = self.verify
 
         # connection test
+        log.debug(f"Table __init__() connection test")
         res = self.count()
+        log.debug(f"  response", extra={"res": res})
+
         assert 'count' in res
         assert 'msg' not in res
 
+
     def debug(self):
-        # print("class Table: ", self.tableid )
+        print("class Table: ", self.tableid )
         metadata = self.read_table()
         metadata['columnsById'] = "<skipped>"
         print(json.dumps(metadata, indent=4))
@@ -302,6 +319,7 @@ class Table:
 
     def _meta_url(self, path: str) -> str:
         return f"{self.host}/api/v2/meta/tables/{self.tableid}/{path}"
+
 
     def _data_url(self, path: str) -> str:
         return f"{self.host}/api/v2/tables/{self.tableid}/{path}"
@@ -316,9 +334,9 @@ class Table:
         """
         url = self._meta_url("")
 
+        log.debug(f"Table read_table() url={url}")
         res = self.session.get(url, params={}).json()
-
-        # print( json.dumps(res, indent=4 ) )
+        log.debug(f"  response", extra={"res": res})
 
         return res
 
@@ -331,12 +349,9 @@ class Table:
         """
 
         url = self._data_url("records")
-
-        # print( json.dumps(data, indent=4 ) )
-
+        log.debug(f"Table insert() url={url}", extra={"data": data})
         res = self.session.post(url, json=data)
-
-        # print( json.dumps(res, indent=4 ) )
+        log.debug(f"  response", extra={"res": res})
 
         return res
 
@@ -347,14 +362,11 @@ class Table:
         https://data-apis-v2.nocodb.com/#tag/Table-Records/operation/db-data-table-row-update
         PATCH http://localhost:8080/api/v2/tables/{tableId}/records
         """
-        # print("AA")
-        # print("TABLE DELETE ", json.dumps(list,indent=4) )
-        # print("    JSON ", json.dumps(list))
 
         url = self._data_url("records")
-
-        # print( json.dumps(data, indent=4 ) )
+        log.debug(f"Table update() url={url}", extra={"data": data})
         res= self.session.patch(url, data=data).json()
+        log.debug(f"  response", extra={"res": res})
 
         return res
 
@@ -367,17 +379,14 @@ class Table:
         GET http://localhost:8080/api/v2/tables/{tableId}/records/{recordId}
         """
         url = self._data_url(f"records/{primary_key}")
-        return self.session.get(url).json()
+        log.debug(f"Table read_table_record() url={url}")
+        res= self.session.get(url).json()
+        log.debug(f"  response", extra={"res": res})
+
+        return res
+
 
     def update_record(self, pk: int, key: str, value: object) -> dict:
-        # record = self.read_table_record(pk)
-        # if 'CreatedAt' in record:
-        #     del record['CreatedAt']
-        # if 'UpdatedAt' in record:
-        #     del record['UpdatedAt']
-        # if key == 'Primary Key':
-        #     raise ValueError("Primary Key is not overridable")
-        # record[key] = value
         record = [{'Primary Key': pk, f'{key}': value}]
         return self.update(record)
 
@@ -397,10 +406,11 @@ class Table:
         if where:
             params['where'] = where
 
+        log.debug(f"Table count() url={url}", extra={"params": params})
         res = self.session.get(url, params=params).json()
+        log.debug(f"  response", extra={"res": res})
 
         return res
-
 
 
     def list(self, fields=None, sort=None, where=None, offset=0, limit=None):
@@ -423,18 +433,16 @@ class Table:
             params['offset'] = offset
         if where:
             params['where'] = where
-            print("                WHERE ", where)
         if limit:
             params['limit'] = limit
 
+        log.debug(f"Table list() url={url}", extra={"params": params})
         res = self.session.get(url, params=params).json()
-
-        # print(" #### page info #### ")
-        # print( json.dumps(res['pageInfo'], indent=4 ) )
-        # print(" ######## ")
+        log.debug(f"  response", extra={"res": res})
 
         return res
-    
+
+
     def list_all_records(self, fields=None, sort=None, where=None, offset=0):
         """ 
         [DATA] List All Table Records
@@ -454,28 +462,27 @@ class Table:
             params['offset'] = offset
         if where:
             params['where'] = where
-            print("WHERE ", where)
         if limit:
             params['limit'] = limit
 
+        log.debug(f"Table list_all_records() url={url}", extra={"params": params})
         res = self.session.get(url, params=params).json()
+        log.debug(f"  response", extra={"res": res})
+
         page_number = res.get('pageInfo', {}).get('pageNumber', 1)
         # Make sure to get ALL results (not just first 1k)
-        print("Is last page? ")
-        print(res['pageInfo']['isLastPage'])
+        log.debug(f"  response", extra={"res": res})
         while (res.get('pageInfo', {}).get('isLastPage', True) == False):
             params['page'] = page_number + 1
+            log.debug(f"  next page url={url}", extra={"params": params})
             res2 = self.session.get(url, params=params).json()
+            log.debug(f"  response", extra={"res2": res2})
             res['list'].extend(res2.get('list', []))
             res['pageInfo'] = res2.get('pageInfo', {})
             page_number = page_number + 1
-            print("Page number: ", page_number)
-        # print(" #### page info #### ")
-        # print( json.dumps(res['pageInfo'], indent=4 ) )
-        # print(" ######## ")
+            # print("Page number: ", page_number)
 
         return res
-
 
 
     def delete(self, list=None):
@@ -488,15 +495,17 @@ class Table:
         """
         url = self._data_url("records")
 
-        # print("TABLE DELETE ", json.dumps(list,indent=4) )
-        # print("    JSON ", json.dumps(list))
-
         if list is None:
+            log.debug(f"Table delete() without list url={url}")
             res = self.session.delete(url).json()
         else:
+            log.debug(f"Table delete() with list url={url}", extra={"list": list})
             res = self.session.delete(url, data=list).json()
 
+        log.debug(f"  response", extra={"res": res})
+
         return res
+
 
     def create_column(self, column_name, column_type, extra_options=None):
         """
@@ -515,9 +524,12 @@ class Table:
         if extra_options:
             data.update(extra_options)
 
+        log.debug(f"Table create_column() url={url}", extra={"data": data})
         res = self.session.post(url, json=data).json()
+        log.debug(f"  response", extra={"res": res})
 
         return res
+
 
     def link_records(self, linkFieldId, recordId, refRowPKValue = None, refRowPKValues = None) -> requests.Response:
         """
@@ -542,16 +554,26 @@ class Table:
         if isinstance(refRowPKValues, list):
             for refRowPKValue in refRowPKValues:
                 url = f"{self.host}/api/v1/db/data/noco/{base_id}/{self.tableid}/{encoded_record_id}/{column_link_type}/{linkFieldId}/{refRowPKValue}"
+                log.debug(f"Table link_records() with list", extra={"url": url})
                 res = self.session.post(url)
+                log.debug(f"  response", extra={"res": res})
+
                 if res.status_code != 200:
-                    print(f"Failed to link record {refRowPKValue} with {recordId}: {res.text}")
+                    log.warning(f"Table link_records() with list status_code != 200 Failed to link record {refRowPKValue} with {recordId}: {res.text}",
+                        extra={"res": res})
+
         else:
             url = f"{self.host}/api/v1/db/data/noco/{base_id}/{self.tableid}/{encoded_record_id}/{column_link_type}/{linkFieldId}/{refRowPKValues}"
+            log.debug(f"Table link_records() else", extra={"url": url})
             res = self.session.post(url)
+            log.debug(f"  response", extra={"res": res})
+
             if res.status_code != 200:
-                print(f"Failed to link record {refRowPKValues} with {recordId}: {res.text}")
+                log.warning(f"Table link_records() without list status_code != 200 Failed to link record {refRowPKValue} with {recordId}: {res.text}",
+                    extra={"res": res})
+
         return res.json()
-    
+
 
     def list_linked_records(self, linkFieldId, recordId) -> requests.Response:
         """ 
@@ -562,15 +584,21 @@ class Table:
         """
         encoded_record_id = urllib.parse.quote(str(recordId), safe='')
         url = self._data_url(f"links/{linkFieldId}/records/{encoded_record_id}")
+        log.debug(f"Table list_linked_records() url={url}")
         res = self.session.get(url).json()
+        log.debug(f"  response", extra={"res": res})
+
         links_list = res.get('list')
         if (not links_list is None):
             totalRows = res.get('pageInfo', {}).get('totalRows', 0)
             if (totalRows > len(links_list)):
                 url = self._data_url(f"links/{linkFieldId}/records/{encoded_record_id}?limit={totalRows}")
+                log.debug(f"Table list_linked_records() with links_list url={url}")
                 res = self.session.get(url).json()
+                log.debug(f"  response", extra={"res": res})
 
         return res
+
 
     def unlink_records(self, linkFieldId, recordId, refRowPKValue = None, refRowPKValues = None) -> requests.Response:
         """
@@ -595,12 +623,19 @@ class Table:
         if isinstance(refRowPKValues, list):
             for refRowPKValue in refRowPKValues:
                 url = f"{self.host}/api/v1/db/data/noco/{base_id}/{self.tableid}/{encoded_record_id}/{column_link_type}/{linkFieldId}/{refRowPKValue}"
+                log.debug(f"Table unlink_records() from list url={url}")
                 res = self.session.delete(url)
+                log.debug(f"  response", extra={"res": res})
+
                 if res.status_code != 200:
-                    print(f"Failed to link record {refRowPKValue} with {recordId}: {res.text}")
+                    log.warning(f"Table unlink_records() Failed to link record {refRowPKValue} with {recordId}: {res.text}")
         else:
             url = f"{self.host}/api/v1/db/data/noco/{base_id}/{self.tableid}/{encoded_record_id}/{column_link_type}/{linkFieldId}/{refRowPKValues}"
+            log.debug(f"Table unlink_records() else url={url}")
             res = self.session.delete(url)
+            log.debug(f"  response", extra={"res": res})
+
             if res.status_code != 200:
-                print(f"Failed to link record {refRowPKValues} with {recordId}: {res.text}")
+                log.warning(f"Table unlink_records() Failed to link record {refRowPKValues} with {recordId}: {res.text}")
+
         return res.json()

@@ -5,8 +5,8 @@ import os
 import json
 import argparse
 
-from . import nocodb
-from . import prepare_json
+import nocodb
+import prepare_json
 from utils import (NOCODB_HOST, NOCODB_TOKEN, NOCODB_SSL_CERT)
 
 

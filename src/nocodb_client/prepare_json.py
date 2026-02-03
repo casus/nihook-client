@@ -17,7 +17,7 @@ def is_time_duration(string):
         result = pandas.to_datetime(string, format='%H:%M:%S.%f', errors='raise')
         return pandas.Timedelta(days=0,
                                 hours=result.hour, minutes=result.minute, seconds=result.second,
-                                microseconds=result.microsecond, nanoseconds=result.nanosecond)
+                                microseconds=result.microsecond + (result.nanosecond / 1000.0))
 
     except ValueError:
         pass
@@ -28,7 +28,7 @@ def is_time_duration(string):
         result = pandas.to_datetime(string, format='%H:%M:%S', errors='raise')
         return pandas.Timedelta(days=0,
                                 hours=result.hour, minutes=result.minute, seconds=result.second,
-                                microseconds=result.microsecond, nanoseconds=result.nanosecond)
+                                microseconds=result.microsecond + (result.nanosecond / 1000.0))
 
     except ValueError:
         pass

@@ -2,7 +2,6 @@
 
 import argparse
 import json
-import os
 
 import prepare_json
 import nocodb

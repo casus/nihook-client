@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
-import importlib
+import importlib.util
 import sys
-import os
 import json
 import argparse
 
@@ -42,7 +41,7 @@ special_columns = [
 }]
 
 
-def parse_and_append_column_metadata(columns: [], k: str, v: dict):
+def parse_and_append_column_metadata(columns: list, k: str, v: dict):
 
     # replace spaces in keys
     k_nice= k.replace(' ', '_')
@@ -94,7 +93,8 @@ def check_package(pkg: str):
         # If you choose to perform the actual import ...
         module = importlib.util.module_from_spec(spec)
         sys.modules[pkg] = module
-        spec.loader.exec_module(module)
+        if spec.loader is not None:
+            spec.loader.exec_module(module)
         print(f"{pkg!r} has been imported")
     else:
         print(f"can't find the {pkg!r} module, please install it")

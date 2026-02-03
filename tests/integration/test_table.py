@@ -1,4 +1,3 @@
-import os
 import pytest
 from nocodb_client import Base, Table
 

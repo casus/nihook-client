@@ -1,10 +1,9 @@
 # nocodb class
-
 from enum import Enum
 
 import requests
 import json
-import urllib
+import urllib.parse
 import logging
 
 # inherit the parent logger
@@ -119,7 +118,7 @@ Class for access to a NOCODB base == one database in the Nocodb instance
 
 class Base:
 
-    def __init__(self, base_id, nocodb=None, host=None, auth_token=None, verify=True):
+    def __init__(self, base_id, nocodb=None, host=None, auth_token="", verify=True):
 
         # Don't keep the parent Nocodb object because we can work without it
         # Accessing a Base only needs the baseid and the auth_token
@@ -127,7 +126,6 @@ class Base:
         # #self.nocodb= nocodb
         self.base_id = base_id
         self.verify = verify
-        self.session = None
 
         if nocodb:
 
@@ -272,7 +270,7 @@ class Table:
     Class for access to a NOCODB table
     """
 
-    def __init__(self, tableid, base=None, host=None, auth_token=None, verify=True):
+    def __init__(self, tableid, base=None, host=None, auth_token="", verify=True):
 
         # Don't keep the parent Base object because we can work without it
         # Accessing a Table only needs the tableid and the auth_token
@@ -280,7 +278,6 @@ class Table:
         # self.base= base
         self.tableid = tableid
         self.verify = verify
-        self.session = None
 
         if base:
 
@@ -341,7 +338,7 @@ class Table:
         return res
 
 
-    def insert(self, data) -> dict:
+    def insert(self, data) -> requests.Response:
         """
         [DATA] Create Table Records
         https://data-apis-v2.nocodb.com/#tag/Table-Records/operation/db-data-table-row-list
@@ -356,7 +353,7 @@ class Table:
         return res
 
 
-    def update(self, data):
+    def update(self, data) -> requests.Response:
         """
         [DATA] Update Table Records
         https://data-apis-v2.nocodb.com/#tag/Table-Records/operation/db-data-table-row-update
@@ -371,7 +368,7 @@ class Table:
         return res
 
 
-    def read_table_record(self, primary_key: any) -> dict:
+    def read_table_record(self, primary_key: str | int) -> requests.Response:
         """
         [DATA] Read Table Record
         This API endpoint allows you to retrieve a single record identified by Record-ID, serving as unique identifier for the record from a specified table.
@@ -386,7 +383,7 @@ class Table:
         return res
 
 
-    def update_record(self, pk: int, key: str, value: object) -> dict:
+    def update_record(self, pk: int, key: str, value: object) -> requests.Response:
         record = [{'Primary Key': pk, f'{key}': value}]
         return self.update(record)
 
@@ -550,7 +547,7 @@ class Table:
         else:
             refRowPKValues = urllib.parse.quote(str(refRowPKValues), safe='')
 
-
+        res = requests.Response()
         if isinstance(refRowPKValues, list):
             for refRowPKValue in refRowPKValues:
                 url = f"{self.host}/api/v1/db/data/noco/{base_id}/{self.tableid}/{encoded_record_id}/{column_link_type}/{linkFieldId}/{refRowPKValue}"
@@ -619,7 +616,7 @@ class Table:
         else:
             refRowPKValues = urllib.parse.quote(str(refRowPKValues), safe='')
 
-
+        res = requests.Response()
         if isinstance(refRowPKValues, list):
             for refRowPKValue in refRowPKValues:
                 url = f"{self.host}/api/v1/db/data/noco/{base_id}/{self.tableid}/{encoded_record_id}/{column_link_type}/{linkFieldId}/{refRowPKValue}"

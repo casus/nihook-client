@@ -37,13 +37,12 @@ The client relies on environment variables for connection details. You can set t
 |----------|-------------|---------|
 | `NOCODB_HOST` | URL of your NocoDB instance | `http://localhost` |
 | `NOCODB_TOKEN` | Your NocoDB API Token | `none` |
-| `NOCODB_SSL_CERT`| `True`/`False` to enable/disable verification | `True` |
+| `NOCODB_SSL_CERT`| Path to SSL Cert or `True`/`False` to enable/disable verification | `True` |
 
 Example:
 ```bash
 export NOCODB_HOST="https://my-nocodb.example.com"
 export NOCODB_TOKEN="your-api-token-here"
-export NOCODB_SSL_CERT="True"
 ```
 
 ## Usage
@@ -101,13 +100,12 @@ Creates a new NocoDB table based on a JSON schema file.
 python3 -m nocodb_client.table_from_schema my_schema.json --base <base_id> --name "New Table"
 ```
 
-**2. Generate Schema from Datasets**
-Generates a JSON schema from one or more example dataset files (JSON). This schema can then be used to create a table.
+**2. Enter Dataset**
+Imports data from a JSON file into an existing table.
 
 ```bash
-python3 -m nocodb_client.schema_from_example_datasets dataset1.json dataset2.json -o schema.json
+python3 -m nocodb_client.enter_dataset --file DATASET.json --base <base_id> --table "TableName"
 ```
-
 
 ## Development
 

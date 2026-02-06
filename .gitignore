@@ -1,2 +1,6 @@
 env.sh
 __pycache__/
+*.egg-info/
+dist/
+build/
+.pytest_cache/

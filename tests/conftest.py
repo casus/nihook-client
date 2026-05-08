@@ -1,6 +1,6 @@
 import os
 import pytest
-from nocodb_client import Nocodb
+from nihook_client import Nocodb
 
 @pytest.fixture(scope="session")
 def nocodb():

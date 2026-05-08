@@ -1,5 +1,5 @@
 import pytest
-from nocodb_client import Base
+from nihook_client import Base
 
 
 @pytest.fixture(scope="module")

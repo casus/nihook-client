@@ -16,8 +16,8 @@ A simple, Python-based wrapper and CLI for the [NocoDB API v2](https://nocodb.co
 Clone the repository and install using `pip`:
 
 ```bash
-git clone <repository-url> nocodb-client
-cd nocodb-client
+git clone <repository-url> nihook-client
+cd nihook-client
 pip install .
 ```
 
@@ -37,7 +37,7 @@ The client relies on environment variables for connection details. You can set t
 |----------|-------------|---------|
 | `NOCODB_HOST` | URL of your NocoDB instance | `http://localhost` |
 | `NOCODB_TOKEN` | Your NocoDB API Token | `none` |
-| `NOCODB_SSL_CERT`| Path to SSL Cert or `True`/`False` to enable/disable verification | `True` |
+| `NOCODB_SSL_CERT`| `True`/`False` to enable/disable verification | `True` |
 
 Example:
 ```bash
@@ -51,7 +51,7 @@ export NOCODB_TOKEN="your-api-token-here"
 
 ```python
 import os
-from nocodb_client import Nocodb
+from nihook_client import Nocodb
 
 # Initialize client
 client = Nocodb(
@@ -83,10 +83,10 @@ if base:
 
 ### CLI Command
 
-The package installs a `nocodb-client` command for checking versions and basic interaction.
+The package installs a `nihook-client` command for checking versions and basic interaction.
 
 ```bash
-nocodb-client -v
+nihook-client -v
 ```
 
 ### Utility Scripts
@@ -97,14 +97,14 @@ The package includes several distinct modules that can be run to perform automat
 Creates a new NocoDB table based on a JSON schema file.
 
 ```bash
-python3 -m nocodb_client.table_from_schema my_schema.json --base <base_id> --name "New Table"
+python3 -m nihook_client.table_from_schema my_schema.json --base <base_id> --name "New Table"
 ```
 
 **2. Enter Dataset**
 Imports data from a JSON file into an existing table.
 
 ```bash
-python3 -m nocodb_client.enter_dataset --file DATASET.json --base <base_id> --table "TableName"
+python3 -m nihook_client.enter_dataset --file DATASET.json --base <base_id> --table "TableName"
 ```
 
 ## Development

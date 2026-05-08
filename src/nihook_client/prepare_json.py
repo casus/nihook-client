@@ -264,6 +264,7 @@ def add_column_definition( columns, k, type, subtype="" ):
 
         # print("    ", k, " --> type ", type(v), " example ", v)
         # print("handle float or decimal")
+        # TODO: Fix it to use "Decimal" and "decimal" if there is a "subtype": "Decimal" in the input JSON
         columns.append(
             {
                 "column_name": k,

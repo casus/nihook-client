@@ -1,5 +1,5 @@
 [project]
-name = "nocodb-client"
+name = "nihook-client"
 version = "0.1.0"
 description = "A simple NocoDB API v2 wrapper"
 authors = [
@@ -10,7 +10,7 @@ requires-python = ">=3.12"
 dynamic = ["dependencies"]
 
 [project.scripts]
-nocodb-client = "nocodb_client.cli:main"
+nihook-client = "nihook_client.cli:main"
 
 [project.optional-dependencies]
 dev = ["pytest>=7.0.0", "requests-mock>=1.11.0"]

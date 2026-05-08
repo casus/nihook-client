@@ -1,7 +1,7 @@
 import pytest
 import requests
 from requests_mock import Mocker
-from nocodb_client import Base 
+from nihook_client import Base 
 from const import FAKE_HOST, FAKE_TOKEN
 
 def test_base_list_tables():

@@ -2,7 +2,7 @@ from urllib.parse import parse_qs
 import pytest
 import requests
 from requests_mock import Mocker
-from nocodb_client import Nocodb  # adjust import path
+from nihook_client import Nocodb  # adjust import path
 
 from const import FAKE_HOST, FAKE_TOKEN
 

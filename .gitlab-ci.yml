@@ -49,7 +49,7 @@ integration_tests:
   stage: test
   image: python:${PYTHON_VERSION}
   services:
-    - name: nocodb/nocodb:latest
+    - name: nocodb/nocodb:0.263.8
       alias: nocodb
   variables:
     NOCODB_HOST: http://nocodb:8080

@@ -113,6 +113,9 @@ def prepare_input(input, extra=None):
 
 # DEPRECATED
 def append_column_metadata(columns, k, v):
+
+    print("DEPRECATED: append_column_metadata()")
+
     if type(v) is int:
 
         # print("    ", k, " --> type ", type(v), " example ", v)
@@ -370,6 +373,11 @@ def add_column_definition( columns, k, type, subtype="" ):
                 "dt": "character varying",
                 "un": False
             })
+
+    elif "DISABLED" == type:
+
+        # disabled on purpose, ignore
+        pass
 
     else:
 

@@ -1,7 +1,7 @@
 import pytest
 import requests
 from requests_mock import Mocker
-from nihook_client import Table 
+from nihook_client import Table, NocodbError
 from const import FAKE_HOST, FAKE_TOKEN
 
 
@@ -35,9 +35,9 @@ def test_table_init_success_calls_count():
 
 def test_table_init_fails_when_msg_present():
     with Mocker() as m:
-        # Constructor asserts that 'msg' is not in the count response
-        m.get(f"{FAKE_HOST}/api/v2/tables/tbl1/records/count", json={"msg": "error"})
-        with pytest.raises(AssertionError):
+        # Constructor reports the message NocoDB sent back
+        m.get(f"{FAKE_HOST}/api/v2/tables/tbl1/records/count", json={"msg": "Table not found"})
+        with pytest.raises(NocodbError, match="Table not found"):
             Table("tbl1", host=FAKE_HOST, auth_token=FAKE_TOKEN)
 
 

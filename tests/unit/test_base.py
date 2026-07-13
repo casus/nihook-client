@@ -1,7 +1,7 @@
 import pytest
 import requests
 from requests_mock import Mocker
-from nihook_client import Base 
+from nihook_client import Base, NocodbError
 from const import FAKE_HOST, FAKE_TOKEN
 
 def test_base_list_tables():
@@ -93,22 +93,25 @@ def test_create_table_omits_color_and_still_returns_id():
         assert "color" not in posted
 
 
-def test_create_table_returns_none_when_errors_present():
+def test_create_table_raises_with_message_when_errors_present():
     with Mocker() as m:
         m.get(f"{FAKE_HOST}/api/v2/meta/bases/b3/info", json={"version": "1"})
         m.get(f"{FAKE_HOST}/api/v2/meta/bases/b3/", json={"id": "b3"})
         m.post(f"{FAKE_HOST}/api/v2/meta/bases/b3/tables", json={"errors": [{"message": "bad"}]})
         b = Base("b3", host=FAKE_HOST, auth_token=FAKE_TOKEN)
-        assert b.create_table("Bad", [{"title": "X", "uidt": "Y"}]) is None
+        with pytest.raises(NocodbError, match="bad") as excinfo:
+            b.create_table("Bad", [{"title": "X", "uidt": "Y"}])
+        assert excinfo.value.response == {"errors": [{"message": "bad"}]}
 
 
-def test_create_table_returns_none_when_msg_present():
+def test_create_table_raises_with_message_when_msg_present():
     with Mocker() as m:
         m.get(f"{FAKE_HOST}/api/v2/meta/bases/b4/info", json={"version": "1"})
         m.get(f"{FAKE_HOST}/api/v2/meta/bases/b4/", json={"id": "b4"})
         m.post(f"{FAKE_HOST}/api/v2/meta/bases/b4/tables", json={"msg": "Invalid token"})
         b = Base("b4", host=FAKE_HOST, auth_token=FAKE_TOKEN)
-        assert b.create_table("Bad2", [{"title": "X", "uidt": "Y"}]) is None
+        with pytest.raises(NocodbError, match="Invalid token"):
+            b.create_table("Bad2", [{"title": "X", "uidt": "Y"}])
 
 
 

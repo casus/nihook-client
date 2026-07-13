@@ -81,6 +81,42 @@ if base:
             print(record)
 ```
 
+### Error Handling
+
+Failures raise exceptions that carry the message of the underlying problem — for
+NocoDB API failures that is the message NocoDB itself reported. Every exception
+derives from `NihookClientError`, so a single `except` clause can cover them all.
+
+```python
+from nihook_client import NihookClientError, NocodbError, ReservedColumnError
+from nihook_client.table_from_schema import create_new_table_from_schema
+
+try:
+    table_id = create_new_table_from_schema(host, token, ssl_cert, base_id, "Datasets", schema)
+
+except ReservedColumnError as e:
+    # the schema uses a key reserved for 'URL', 'status' or 'branch'
+    print(f"rename '{e.column_name}' in the input schema: {e}")
+
+except NocodbError as e:
+    # e.response holds the decoded JSON body of the failed request
+    print(f"NocoDB refused the request: {e} ({e.response})")
+
+except NihookClientError as e:
+    print(f"failed: {e}")
+```
+
+| Exception | Raised when |
+|-----------|-------------|
+| `NihookClientError` | Base class of all of the below |
+| `SchemaError` | The input schema cannot be mapped to a table, e.g. a key without a `type` |
+| `ReservedColumnError` | The schema uses one of the reserved keys `URL`, `status`, `branch` |
+| `UnsupportedTypeError` | A key has a type that has no NocoDB column equivalent |
+| `NocodbError` | The NocoDB API rejected a request; `.response` holds the JSON body |
+
+The `python3 -m nihook_client.*` scripts catch these, print the message to stderr
+and exit with a non-zero status, so command line behaviour is unchanged.
+
 ### CLI Command
 
 The package installs a `nihook-client` command for checking versions and basic interaction.

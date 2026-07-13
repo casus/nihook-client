@@ -6,7 +6,8 @@ import argparse
 
 from . import nocodb
 from . import prepare_json
-from utils import (NOCODB_HOST, NOCODB_TOKEN, NOCODB_SSL_CERT)
+from .exceptions import NihookClientError, NocodbError, ReservedColumnError, SchemaError
+from .utils import (NOCODB_HOST, NOCODB_TOKEN, NOCODB_SSL_CERT)
 
 
 special_columns = [
@@ -40,6 +41,9 @@ special_columns = [
     "dt": "character varying",
 }]
 
+# these are added by us, an input schema must not bring them along
+reserved_column_names = [c['column_name'] for c in special_columns]
+
 
 def parse_and_append_column_metadata(columns: list, k: str, v: dict):
 
@@ -48,8 +52,7 @@ def parse_and_append_column_metadata(columns: list, k: str, v: dict):
 
     if 'type' not in v:
 
-        print("ERROR: 'type' not given, abort")
-        sys.exit(-12)
+        raise SchemaError(f"'type' not given for key '{k}'")
 
     type= v['type']
     subtype= ""
@@ -117,20 +120,10 @@ def schema_to_nocodb_definition( base, name, schema ):
 
     for c in columns:
 
-        if "URL" == c['column_name'] or "URL" == c['title']:
-            print("ERROR: special key 'URL' used in input JSON -- not allowed, rename there")
-            print("not successful")
-            sys.exit(-3)
+        for reserved in reserved_column_names:
 
-        if "status" == c['column_name'] or "status" == c['title']:
-            print("ERROR: special key 'status' used in input JSON -- not allowed, rename there")
-            print("not successful")
-            sys.exit(-3)
-
-        if "branch" == c['column_name'] or "branch" == c['title']:
-            print("ERROR: special key 'branch' used in input JSON -- not allowed, rename there")
-            print("not successful")
-            sys.exit(-3)
+            if reserved == c['column_name'] or reserved == c['title']:
+                raise ReservedColumnError(reserved)
 
     columns = special_columns + columns
 
@@ -138,49 +131,40 @@ def schema_to_nocodb_definition( base, name, schema ):
 
 
 def create_new_table( base, name, columns ):
+    """Create the table on the NocoDB instance configured via the environment.
 
-    assert base is not None
-    assert name is not None
+    Raises NocodbError if NocoDB rejects the request.
+    """
 
-    base = nocodb.Base(base, host=NOCODB_HOST, auth_token=NOCODB_TOKEN, verify=NOCODB_SSL_CERT)
-    table_id = base.create_table(name, columns)
-
-    if table_id:
-
-        # print(f"new table {table_id} with columns:")
-
-        table = nocodb.Table(table_id, host=NOCODB_HOST, auth_token=NOCODB_TOKEN, verify=NOCODB_SSL_CERT)
-        details = table.read_table()
-        return table_id
-
-        # print(json.dumps(details,indent=4))
-        # for c in details['columns']:
-        #     print(f"    column '{c['title']}' of type {c['uidt']} / {c['dt']}")
-    return None
+    return create_new_table_with_params(
+        base, name, columns, NOCODB_HOST, NOCODB_TOKEN, NOCODB_SSL_CERT)
 
 
 def create_new_table_with_params( base, name, columns, nocodb_host, nocodb_token, nocodb_ssl_cert ):
+    """Create the table on the given NocoDB instance.
+
+    Raises NocodbError if NocoDB rejects the request, the message of that error
+    is the one reported by NocoDB itself.
+    """
 
     assert base is not None
     assert name is not None
 
-    base = nocodb.Base(base, host=nocodb_host, auth_token=nocodb_token, verify=nocodb_ssl_cert)
-    table_id = base.create_table(name, columns)
+    base_object = nocodb.Base(base, host=nocodb_host, auth_token=nocodb_token, verify=nocodb_ssl_cert)
+    table_id = base_object.create_table(name, columns)
 
     if not table_id:
-        raise RuntimeError(f"Failed to create table '{name}' in base '{base}'.")
+        raise NocodbError(f"failed to create table '{name}' in base '{base}': no table id returned")
 
-    if table_id:
+    # print(f"new table {table_id} with columns:")
 
-        # print(f"new table {table_id} with columns:")
+    table = nocodb.Table(table_id, host=nocodb_host, auth_token=nocodb_token, verify=nocodb_ssl_cert)
+    details = table.read_table()
 
-        table = nocodb.Table(table_id, host=nocodb_host, auth_token=nocodb_token, verify=nocodb_ssl_cert)
-        details = table.read_table()
-
-        # print(json.dumps(details,indent=4))
-        # for c in details['columns']:
-        #     print(f"    column '{c['title']}' of type {c['uidt']} / {c['dt']}")
-        return table_id
+    # print(json.dumps(details,indent=4))
+    # for c in details['columns']:
+    #     print(f"    column '{c['title']}' of type {c['uidt']} / {c['dt']}")
+    return table_id
 
 
 def create_new_table_from_schema(nocodb_host, nocodb_token, nocodb_ssl_cert, base_id, table_name, schema):
@@ -204,17 +188,21 @@ if __name__ == '__main__':
     with open(args.schema, "r") as f:
         schema= json.load(f)
 
-    columns= schema_to_nocodb_definition( args.base, args.name, schema )
- 
-    if not args.dryrun:
+    try:
 
-        table_id = create_new_table( args.base, args.name, columns )
-        if table_id:
+        columns= schema_to_nocodb_definition( args.base, args.name, schema )
+
+        if not args.dryrun:
+
+            table_id = create_new_table( args.base, args.name, columns )
             print(f"New Table Id: {table_id} ")
+
         else:
-            print("Failed to create new table")
 
-    else:
+            print("Dryrun, this is what I would send to Nocodb: ")
+            print(json.dumps(columns, indent=4))
 
-        print("Dryrun, this is what I would send to Nocodb: ")
-        print(json.dumps(columns, indent=4))
+    except NihookClientError as e:
+
+        print(f"ERROR: {e}", file=sys.stderr)
+        sys.exit(e.exit_code)

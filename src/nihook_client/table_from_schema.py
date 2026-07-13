@@ -103,7 +103,12 @@ def check_package(pkg: str):
         print(f"can't find the {pkg!r} module, please install it")
 
 
-def schema_to_nocodb_definition( base, name, schema ):
+def schema_to_nocodb_definition_with_columns( base, name, schema, additional_columns=None ):
+    """Turn the schema into a column definition, prefixed by 'additional_columns'.
+
+    No column name is reserved here, the caller decides which columns to prepend
+    and is responsible for them not clashing with the ones in the schema.
+    """
 
     assert base is not None
     assert name is not None
@@ -115,6 +120,13 @@ def schema_to_nocodb_definition( base, name, schema ):
 
         parse_and_append_column_metadata(columns, k, v)
 
+    return list(additional_columns or []) + columns
+
+
+def schema_to_nocodb_definition( base, name, schema ):
+
+    columns = schema_to_nocodb_definition_with_columns( base, name, schema )
+
     # add "URL" as extra column and as a primary key
     # add "status" as extra column
 
@@ -125,9 +137,7 @@ def schema_to_nocodb_definition( base, name, schema ):
             if reserved == c['column_name'] or reserved == c['title']:
                 raise ReservedColumnError(reserved)
 
-    columns = special_columns + columns
-
-    return columns
+    return special_columns + columns
 
 
 def create_new_table( base, name, columns ):
@@ -169,6 +179,17 @@ def create_new_table_with_params( base, name, columns, nocodb_host, nocodb_token
 
 def create_new_table_from_schema(nocodb_host, nocodb_token, nocodb_ssl_cert, base_id, table_name, schema):
     columns= schema_to_nocodb_definition( base_id, table_name, schema )
+    return create_new_table_with_params( base_id, table_name, columns, nocodb_host, nocodb_token, nocodb_ssl_cert )
+
+
+def create_new_table_from_schema_with_columns(nocodb_host, nocodb_token, nocodb_ssl_cert, base_id, table_name, schema, additional_columns=None):
+    """Like create_new_table_from_schema(), but with caller supplied extra columns.
+
+    'additional_columns' are NocoDB column definitions that get prepended to the
+    ones derived from the schema, they take the place of the special columns
+    ("URL", "status", "branch") added by create_new_table_from_schema().
+    """
+    columns= schema_to_nocodb_definition_with_columns( base_id, table_name, schema, additional_columns )
     return create_new_table_with_params( base_id, table_name, columns, nocodb_host, nocodb_token, nocodb_ssl_cert )
 
 """

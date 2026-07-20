@@ -17,7 +17,8 @@
 # https://gitlab.com/gitlab-org/gitlab/-/blob/master/lib/gitlab/ci/templates/Getting-Started.gitlab-ci.yml
 
 stages:          # List of stages for jobs, and their order of execution
-  - test
+  - unit_tests
+  - integration_tests
 
 
 
@@ -31,7 +32,7 @@ cache:
     - .cache/pip
 
 unit-tests:
-  stage: test
+  stage: unit_tests
   image: python:3.12
   before_script:
     - pip install --upgrade pip
@@ -46,7 +47,7 @@ unit-tests:
       - report.xml
 
 integration_tests:
-  stage: test
+  stage: integration_tests
   image: python:${PYTHON_VERSION}
   services:
     - name: nocodb/nocodb:0.263.8

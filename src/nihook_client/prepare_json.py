@@ -1,7 +1,7 @@
-import sys
-
 import pandas
 import dateutil.parser
+
+from .exceptions import UnsupportedTypeError
 
 """
 Prepare JSON metadata from a 'DATASET.json' file before it can be entered to Nocodb
@@ -244,9 +244,7 @@ def append_column_metadata(columns, k, v):
 
         ## no not cover {} above because those should have been resolved by 'flatten_keys()'
 
-        print("    ", k, " --> type ", type(v), " example ", v)
-        print("handle unknown, abort")
-        sys.exit(-2)
+        raise UnsupportedTypeError(k, type(v).__name__)
 
 def add_column_definition( columns, k, type, subtype="" ):
 
@@ -383,9 +381,7 @@ def add_column_definition( columns, k, type, subtype="" ):
 
         ## no not cover {} above because those should have been resolved by 'flatten_keys()'
 
-        print("    ", k, " --> type ", type)
-        print("handle unknown, abort")
-        sys.exit(-2)
+        raise UnsupportedTypeError(k, type)
 
 
 def derive_table_columns_definition(data):

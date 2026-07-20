@@ -6,6 +6,8 @@ import json
 import urllib.parse
 import logging
 
+from .exceptions import NocodbError, error_message_from_response
+
 # inherit the parent logger
 log = logging.getLogger('')
 log.propagate= True
@@ -74,9 +76,10 @@ class Nocodb:
         res = self.session.post(url, data=data).json()
         log.debug(f"  response", extra={"res": res})
 
-        if 'msg' in res and res['msg'] == 'Invalid token':
-            log.error(f"Nocodb create_base() 'Invalid token' url={url}", extra={"data": data, "res": res})
-            raise Exception("Invalid token")
+        if 'msg' in res:
+            log.error(f"Nocodb create_base() url={url}", extra={"data": data, "res": res})
+            raise NocodbError(
+                f"failed to create base '{title}': {error_message_from_response(res)}", response=res)
 
         return res
 
@@ -246,7 +249,9 @@ class Base:
 
         if "errors" in res or "msg" in res:
             log.error(f"Base create_table() url={url}", extra={"data": data, "res": res})
-            return None
+            raise NocodbError(
+                f"failed to create table '{name}' in base '{self.base_id}': "
+                f"{error_message_from_response(res)}", response=res)
 
         return res['id']
 
@@ -303,8 +308,11 @@ class Table:
         res = self.count()
         log.debug(f"  response", extra={"res": res})
 
-        assert 'count' in res
-        assert 'msg' not in res
+        if 'count' not in res or 'msg' in res:
+            log.error(f"Table __init__() connection test failed", extra={"res": res})
+            raise NocodbError(
+                f"cannot access table '{self.tableid}': {error_message_from_response(res)}",
+                response=res)
 
 
     def debug(self):

@@ -20,6 +20,8 @@ if __name__ == '__main__':
     parser.add_argument("-t", "--table", required=True, help="Existing Nocodb table id, then insert into this table")
     parser.add_argument("-p", "--prefix", default="",
                         help="Prefix to the URL field which is usually the host part of the URL but can be any prefix string")
+    parser.add_argument("-v", "--verbose", action='store_true', help="Debug output")
+
     args = parser.parse_args()
 
     try:

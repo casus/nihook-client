@@ -88,6 +88,10 @@ class SchemaGenerator:
 
             ### depending on the type of v do different things with k,v
 
+            if k in output_schema['properties'] and "DISABLED" == output_schema['properties'][k]['type']:
+                # key k has been disabled before due to earlier conflicts, skip it
+                continue
+
             # handle nested dicts with recursive calls
 
             if  type(v) is dict:
@@ -98,7 +102,7 @@ class SchemaGenerator:
                 else:
                     output_schema['count'][k] += 1
                     if output_schema['properties'][k]['type'] != "object":
-                        print( f"WARNING: type mismatch for key '{k}' where 'object' != ", output_schema['properties'][k]["type"] )
+                        print( f"WARNING: type mismatch #1 for key '{k}' where 'object' != ", output_schema['properties'][k]["type"] )
 
                 self.recursiveScan( input_json[k], output_schema['properties'][k] )
 
@@ -133,9 +137,16 @@ class SchemaGenerator:
                     else:
                         output_schema['count'][k] += 1
                         if output_schema['properties'][k]['type'] != "array":
-                            print( f"WARNING: type mismatch for key '{k}' where 'object' != ", output_schema['properties'][k]['type'] )
-                        if output_schema['properties'][k]['items']['type'] != typename:
-                            print( f"WARNING: type mismatch for key '{k}' array type where '{typename}' != ", output_schema['properties'][k]['items']['type'] )
+
+                            print( f"WARNING: type mismatch #2 for key '{k}' where 'object' != ", output_schema['properties'][k]['type'] )
+                            print( f"    Expected type '{output_schema['properties'][k]['type']}' from previous cases but found 'array'")
+                            print( f"    DISABLE key '{k}', make sure to fix metadata extraction to provide always an array or always type '{output_schema['properties'][k]['type']}'!")
+                            output_schema['properties'].update( { k : { "type": "DISABLED" } } )
+
+                        else: # that means output_schema['properties'][k]['type'] == "array"
+
+                            if output_schema['properties'][k]['items']['type'] != typename:
+                                print( f"WARNING: type mismatch #3 for key '{k}' array type where '{typename}' != ", output_schema['properties'][k]['items']['type'] )
 
                 else: # empty array
 
@@ -145,7 +156,7 @@ class SchemaGenerator:
                     else:
                         output_schema['count'][k] += 1
                         if output_schema['properties'][k]['type'] != "array":
-                            print( f"WARNING: type mismatch for key '{k}' where 'object' != ", output_schema['properties'][k]['type'] )
+                            print( f"WARNING: type mismatch #4 for key '{k}' where 'object' != ", output_schema['properties'][k]['type'] )
 
                 continue
 
@@ -171,7 +182,10 @@ class SchemaGenerator:
 
                         else:
 
-                            print( f"        WARNING: type mismatch for key '{k}' where 'integer' != ", output_schema['properties'][k]['type'] )
+                            print( f"WARNING: type mismatch #5 for key '{k}' where 'integer' != ", output_schema['properties'][k]['type'] )
+                            print( f"    Expected type '{output_schema['properties'][k]['type']}' from previous cases but found 'integer'")
+                            print( f"    DISABLE key '{k}', make sure to fix metadata extraction to provide always the same type!")
+                            output_schema['properties'].update( { k : { "type": "DISABLED" } } )
 
                 continue
 
@@ -186,7 +200,8 @@ class SchemaGenerator:
 
                         if output_schema['properties'][k]['type'] == "integer":
 
-                            print( f"        TODO: found a 'number' field where 'integer' was expected -- convert it" )
+                            # auto-convert to number which is more generic, numbers will accept integers just fine
+                            output_schema['properties'].update( { k : { "type": "number" } } )
 
                         elif output_schema['properties'][k]['type'] == "string":
 
@@ -194,7 +209,7 @@ class SchemaGenerator:
 
                         else:
 
-                            print( f"        WARNING: type mismatch for key '{k}' where 'number' != ", output_schema['properties'][k]['type'] )
+                            print( f"        WARNING: type mismatch #6 for key '{k}' where 'number' != ", output_schema['properties'][k]['type'] )
 
                 continue
 
@@ -206,7 +221,7 @@ class SchemaGenerator:
                 else:
                     output_schema['count'][k] += 1
                     if output_schema['properties'][k]['type'] != "boolean":
-                        print( f"WARNING: type mismatch for key '{k}' where 'boolean' != ", output_schema['properties'][k]['type'] )
+                        print( f"WARNING: type mismatch #7 for key '{k}' where 'boolean' != ", output_schema['properties'][k]['type'] )
 
                 continue
 
@@ -219,7 +234,7 @@ class SchemaGenerator:
                 else:
                     output_schema['count'][k] += 1
                     if output_schema['properties'][k]['type'] != "null":
-                        print( f"WARNING: type mismatch for key '{k}' where 'null' != ", output_schema['properties'][k]['type'] )
+                        print( f"WARNING: type mismatch #8 for key '{k}' where 'null' != ", output_schema['properties'][k]['type'] )
 
                 continue
 
@@ -246,7 +261,14 @@ class SchemaGenerator:
                     output_schema['count'][k] += 1
                     if output_schema['properties'][k]['type'] != "string":
 
-                        print( f"WARNING: type mismatch for string key '{k}' where {newentry} != ", output_schema['properties'][k] )
+                        # if it should be an array, don't give a warning because the string is supposed to get converted to an array of string with one entry
+                        if output_schema['properties'][k]['type'] == "array":
+                            pass
+                        else:
+                            print( f"WARNING: type mismatch #9 for string key '{k}' where {newentry} != ", output_schema['properties'][k] )
+                            print( f"    Expected type '{output_schema['properties'][k]['type']}' from previous cases but found 'string'")
+                            print( f"    DISABLE key '{k}', make sure to fix metadata extraction to provide always the same type!")
+                            output_schema['properties'].update( { k : { "type": "DISABLED" } } )
 
                     else:
 
@@ -285,13 +307,20 @@ class SchemaGenerator:
         if not "count" in output_schema:
             print("WARNING: no \"count\" in (sub)schema")
 
+        removelist= [] # first collect all to remove, later remove them without invalidating the loop
         for k,v in output_schema['properties'].items():
+
+            if "type" in v and "DISABLED" == v['type']:
+                removelist.append(k)
 
             if output_schema['count'][k] == num:
                 output_schema['required'].append(k)
 
             if type(v) is dict and v["type"] == "object":
                 self.finalizeSchema( output_schema['properties'][k], num )
+
+        for r in removelist:
+            output_schema['properties'].pop(r)
 
         # remove the counters
         output_schema.pop("count",None)
@@ -336,6 +365,9 @@ def check_schema( schema ):
                     case 'array':
                         pass
                     case 'null':
+                        pass
+                    case "DISABLED":
+                        # disabled type on purpose, ignore
                         pass
                     case _:
                         print(f'unknown column type {type} for key {k}')
